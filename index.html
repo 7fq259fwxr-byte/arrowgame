@@ -496,7 +496,9 @@ const App = {
     audioCtx: null,
     busy: false,
     isTelegram: false,
-    storageKey: 'arrows_pro_ultra_v2',
+    storageKey: 'arrows_pro_ultra_v3',
+    saveQueue: [],
+    isSaving: false,
 
     async init() {
         console.log('App initializing...');
@@ -535,108 +537,175 @@ const App = {
         }
     },
 
-    // Загрузка состояния
+    // УЛУЧШЕННЫЙ МЕТОД loadState - работаем с разными хранилищами
     async loadState() {
         try {
-            let savedData = null;
+            console.log('🔍 Loading state from storage...');
             
-            // Пробуем получить данные из разных источников
-            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage) {
-                try {
-                    const data = await Telegram.WebApp.CloudStorage.getItem(this.storageKey);
-                    if (data) {
-                        savedData = JSON.parse(data);
-                        console.log('✅ Загружено из Telegram Cloud Storage');
-                    }
-                } catch (e) {
-                    console.warn('⚠️ Не удалось загрузить из Cloud Storage:', e);
-                }
-            }
-            
-            // Если в Telegram нет данных, пробуем localStorage
-            if (!savedData) {
+            // Пробуем localStorage в первую очередь (самый быстрый)
+            try {
                 const localData = localStorage.getItem(this.storageKey);
                 if (localData) {
-                    savedData = JSON.parse(localData);
-                    console.log('✅ Загружено из localStorage');
+                    const saved = JSON.parse(localData);
+                    this.applySavedState(saved);
+                    console.log('✅ Loaded from localStorage:', {
+                        maxLvl: this.state.maxLvl,
+                        coins: this.state.coins,
+                        completedLevels: this.state.completedLevels.length
+                    });
+                    return;
                 }
+            } catch (e) {
+                console.warn('⚠️ localStorage error:', e);
             }
             
-            // Если есть сохраненные данные - применяем их
-            if (savedData) {
-                // Сохраняем важные данные которые могут отсутствовать в старых сохранениях
-                const oldState = { ...this.state };
-                
-                // Объединяем состояния, сохраняя новые поля из текущего состояния
-                this.state = { 
-                    ...this.state, 
-                    ...savedData,
-                    // Важные поля, которые должны быть всегда
-                    completedLevels: savedData.completedLevels || oldState.completedLevels || [],
-                    currentProgress: savedData.currentProgress || oldState.currentProgress || { level: 1, stats: { attempts: 0, wins: 0, fails: 0 } },
-                    maxLvl: savedData.maxLvl || oldState.maxLvl || 1,
-                    coins: savedData.coins || oldState.coins || 0
-                };
-                
-                console.log('✅ Состояние успешно загружено:', {
-                    maxLvl: this.state.maxLvl,
-                    completedLevels: this.state.completedLevels.length,
-                    coins: this.state.coins
-                });
+            // Если в localStorage нет данных и мы в Telegram
+            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage?.getItem) {
+                try {
+                    console.log('🔄 Trying Telegram Cloud Storage...');
+                    const data = await Telegram.WebApp.CloudStorage.getItem(this.storageKey);
+                    if (data) {
+                        const saved = JSON.parse(data);
+                        this.applySavedState(saved);
+                        console.log('✅ Loaded from Telegram Cloud Storage');
+                        
+                        // Сохраняем в localStorage для быстрого доступа в будущем
+                        try {
+                            localStorage.setItem(this.storageKey, data);
+                        } catch (e) {}
+                    } else {
+                        console.log('ℹ️ No data in Cloud Storage');
+                        this.initializeDefaultLevels();
+                    }
+                } catch (e) {
+                    console.error('❌ Telegram Cloud Storage error:', e);
+                    this.initializeDefaultLevels();
+                }
             } else {
-                console.log('ℹ️ Сохранений не найдено, используем начальное состояние');
-                // Создаем начальные сохранения для первых уровней
+                console.log('ℹ️ No saved data found');
                 this.initializeDefaultLevels();
             }
             
-            // Всегда обновляем UI после загрузки
-            this.updateUI();
-            
         } catch (e) {
-            console.error('❌ Ошибка загрузки состояния:', e);
-            // В случае ошибки создаем начальное состояние
+            console.error('❌ Error loading state:', e);
             this.initializeDefaultLevels();
         }
     },
 
+    // Применяем сохраненное состояние
+    applySavedState(saved) {
+        // Важные поля которые должны быть всегда
+        const defaultState = {
+            maxLvl: 1,
+            lives: 3,
+            coins: 0,
+            completedLevels: [],
+            savedLevels: {},
+            tgConnected: false
+        };
+        
+        // Объединяем с дефолтными значениями
+        this.state = {
+            ...defaultState,
+            ...this.state, // текущие настройки (звук, вибрация и т.д.)
+            ...saved,
+            // Гарантируем что важные поля не undefined
+            maxLvl: saved.maxLvl || defaultState.maxLvl,
+            lives: saved.lives || defaultState.lives,
+            coins: saved.coins || defaultState.coins,
+            completedLevels: saved.completedLevels || defaultState.completedLevels,
+            savedLevels: saved.savedLevels || defaultState.savedLevels
+        };
+    },
+
     // НОВЫЙ МЕТОД - Инициализация уровней по умолчанию
     initializeDefaultLevels() {
+        console.log('🔄 Initializing default levels...');
         // Создаем базовую структуру сохранений для первых 5 уровней
         for(let i = 1; i <= 5; i++) {
             if(!this.state.savedLevels[i]) {
                 this.state.savedLevels[i] = this.generate(i, this.getBoardSizeForLevel(i));
             }
         }
-        this.saveState();
+        // Немедленно сохраняем начальное состояние
+        this.forceSaveState();
     },
 
-    // ОБНОВЛЕННЫЙ МЕТОД saveState - сохраняет в оба места
+    // УЛУЧШЕННЫЙ МЕТОД saveState - с очередью и гарантированным сохранением
     async saveState() {
+        // Добавляем в очередь
+        this.saveQueue.push({...this.state});
+        
+        // Если уже сохраняем, выходим
+        if (this.isSaving) return;
+        
+        this.isSaving = true;
+        
         try {
-            const dataToSave = JSON.stringify(this.state);
+            // Берем последнее состояние из очереди
+            const stateToSave = this.saveQueue[this.saveQueue.length - 1] || this.state;
+            const dataToSave = JSON.stringify(stateToSave);
             
-            // Всегда сохраняем в localStorage (быстро и надежно)
-            localStorage.setItem(this.storageKey, dataToSave);
-            console.log('💾 Сохранено в localStorage');
+            console.log('💾 Saving state:', {
+                maxLvl: stateToSave.maxLvl,
+                coins: stateToSave.coins,
+                completedLevels: stateToSave.completedLevels.length
+            });
             
-            // Если в Telegram - сохраняем и в Cloud Storage
-            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage?.setItem) {
+            // 1. Всегда сохраняем в localStorage (самый быстрый и надежный)
+            try {
+                localStorage.setItem(this.storageKey, dataToSave);
+                console.log('✅ Saved to localStorage');
+            } catch (e) {
+                console.warn('⚠️ localStorage save error:', e);
+            }
+            
+            // 2. Если в Telegram - сохраняем и в Cloud Storage
+            if (this.isTelegram) {
                 try {
-                    await Telegram.WebApp.CloudStorage.setItem(this.storageKey, dataToSave);
-                    console.log('💾 Сохранено в Telegram Cloud Storage');
+                    // Проверяем наличие CloudStorage
+                    if (window.Telegram?.WebApp?.CloudStorage?.setItem) {
+                        await Telegram.WebApp.CloudStorage.setItem(this.storageKey, dataToSave);
+                        console.log('✅ Saved to Telegram Cloud Storage');
+                    }
                 } catch (e) {
-                    console.warn('⚠️ Не удалось сохранить в Cloud Storage:', e);
+                    console.error('❌ Telegram Cloud Storage save error:', e);
+                    // Пробуем сохранить в localStorage как резервную копию
+                    try {
+                        localStorage.setItem(`${this.storageKey}_backup`, dataToSave);
+                    } catch (e2) {}
                 }
             }
             
+            // Очищаем очередь
+            this.saveQueue = [];
+            
         } catch (e) {
-            console.error('❌ Ошибка сохранения состояния:', e);
+            console.error('❌ Critical save error:', e);
+        } finally {
+            this.isSaving = false;
         }
     },
 
-    // Алиас для совместимости
-    save() { 
-        this.saveState();
+    // Принудительное сохранение (для критически важных моментов)
+    forceSaveState() {
+        console.log('🚨 Force saving state...');
+        const dataToSave = JSON.stringify(this.state);
+        
+        // Сохраняем в оба места синхронно
+        try {
+            localStorage.setItem(this.storageKey, dataToSave);
+            console.log('✅ Force saved to localStorage');
+        } catch (e) {
+            console.error('❌ Force localStorage save error:', e);
+        }
+        
+        // Для Telegram отправляем в Cloud Storage асинхронно
+        if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage?.setItem) {
+            Telegram.WebApp.CloudStorage.setItem(this.storageKey, dataToSave)
+                .then(() => console.log('✅ Force saved to Telegram Cloud Storage'))
+                .catch(e => console.error('❌ Force Telegram save error:', e));
+        }
     },
 
     initTelegramWebApp() {
@@ -652,6 +721,10 @@ const App = {
                     this.state.tgFirstName = user.first_name;
                     this.state.tgLastName = user.last_name;
                     this.state.tgConnected = true;
+                    
+                    // Сразу сохраняем состояние с Telegram данными
+                    this.forceSaveState();
+                    
                     this.loadUserData();
                 } else {
                     this.showTelegramConnectionButton();
@@ -690,7 +763,9 @@ const App = {
                     this.state.skins = data.user.skins || ['default'];
                     this.state.selectedSkin = data.user.selected_skin || 'default';
                     this.updateUI();
-                    this.saveState();
+                    
+                    // Сразу сохраняем полученные данные
+                    this.forceSaveState();
                     
                     document.getElementById('tg-info').style.display = 'block';
                     document.getElementById('nickname-display').innerText = this.state.tgUsername;
@@ -726,6 +801,8 @@ const App = {
                 if (data.success) {
                     this.state.coins = data.coins;
                     this.updateUI();
+                    // Сразу сохраняем обновленные монеты
+                    this.saveState();
                 }
             }
         } catch (error) { console.error('Error updating score:', error); }
@@ -805,9 +882,9 @@ const App = {
         this.state.tgUsername = `@DemoUser${demoUserId}`;
         this.state.tgConnected = true;
         this.state.coins = 100;
-        this.state.maxLvl = 5;
+        this.state.maxLvl = Math.max(this.state.maxLvl, 5); // Сохраняем текущий прогресс
         this.updateUI();
-        this.saveState();
+        this.forceSaveState(); // Принудительно сохраняем
         document.getElementById('tg-info').style.display = 'block';
         document.getElementById('nickname-display').innerText = this.state.tgUsername;
         document.getElementById('btn-connect-tg').style.display = 'none';
@@ -980,25 +1057,19 @@ const App = {
         // Генерируем уровень если нужно
         if(!this.state.savedLevels[n]) {
             this.state.savedLevels[n] = this.generate(n, this.boardSize);
-            this.saveState();
+            this.saveState(); // Сохраняем сгенерированный уровень
         }
         
         const data = this.state.savedLevels[n];
         console.log(`Level ${n} has ${data.length} arrows`);
         
-        // Для Telegram: всегда сбрасываем solved для текущего уровня при загрузке
-        // Но сохраняем прогресс в savedLevels
+        // Сбрасываем solved для текущего уровня при загрузке
         data.forEach(a => {
-            // Если уровень не решен, сбрасываем solved
-            if (!data.every(x => x.solved)) {
-                a.solved = false;
-            }
+            a.solved = false;
         });
         
         // Создаем стрелки
         data.forEach(a => {
-            if(a.solved) return;
-            
             const wrap = document.createElement('div');
             wrap.className = 'arrow-box'; 
             wrap.style.width = wrap.style.height = arrowSize + 'px';
@@ -1036,7 +1107,7 @@ const App = {
     forceRegenerateLevel1() {
         delete this.state.savedLevels[1];
         this.state.savedLevels[1] = this.generate(1, this.getBoardSizeForLevel(1));
-        this.saveState();
+        this.forceSaveState(); // Принудительно сохраняем
         
         // Перезагружаем уровень
         setTimeout(() => {
@@ -1207,9 +1278,6 @@ const App = {
                     el.style.opacity = '0';
                     a.solved = true;
                     
-                    // Сохраняем прогресс
-                    this.saveState();
-                    
                     // Проверяем завершение уровня
                     if(data.every(x => x.solved)) {
                         setTimeout(() => this.showWin(), 300);
@@ -1232,8 +1300,8 @@ const App = {
             this.state.completedLevels.push(this.curNum);
         }
         
-        // Сохраняем прогресс
-        this.saveState();
+        // ПРИНУДИТЕЛЬНО сохраняем прогресс
+        this.forceSaveState();
         
         this.updateUI();
         
@@ -1282,7 +1350,7 @@ const App = {
         if(this.state.lives > 0) {
             this.state.lives--;
             this.state.timers.push(Date.now() + 1200000);
-            this.saveState();
+            this.forceSaveState(); // Принудительно сохраняем при потере жизни
             this.updateUI(); 
             if(this.state.lives === 0) setTimeout(() => this.nav('home'), 500);
         }
@@ -1296,7 +1364,7 @@ const App = {
             return true;
         });
         if(prevLives !== this.state.lives) { 
-            this.saveState();
+            this.saveState(); // Сохраняем при восстановлении жизней
             this.updateUI(); 
         }
         if(document.getElementById('modal-timers').style.display === 'flex') this.renderTimersList();
@@ -1394,9 +1462,9 @@ window.onload = function() {
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'visible') {
                     console.log('App became visible, saving state...');
-                    // Сохраняем состояние при возвращении
+                    // Принудительно сохраняем при возвращении
                     setTimeout(() => {
-                        App.saveState();
+                        App.forceSaveState();
                     }, 100);
                 }
             });
@@ -1426,13 +1494,13 @@ window.onload = function() {
 // Автосохранение перед закрытием
 window.addEventListener('beforeunload', function() {
     console.log('Saving before unload...');
-    App.saveState();
+    App.forceSaveState();
 });
 
 // Для iOS Safari
 window.addEventListener('pagehide', function() {
     console.log('Saving on page hide...');
-    App.saveState();
+    App.forceSaveState();
 });
 </script>
 </body>
