@@ -496,7 +496,7 @@ const App = {
     audioCtx: null,
     busy: false,
     isTelegram: false,
-    storageKey: 'arrows_pro_ultra_v3',
+    storageKey: 'arrows_pro_ultra_v4',
     saveQueue: [],
     isSaving: false,
 
@@ -917,7 +917,10 @@ const App = {
     nav(scr) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         const screen = document.getElementById('scr-' + scr);
-        if (screen) screen.classList.add('active');
+        if (screen) {
+            screen.classList.add('active');
+            console.log('Navigated to:', scr);
+        }
         
         const mainHeader = document.getElementById('main-header');
         if (mainHeader) mainHeader.style.visibility = (scr === 'home' || scr === 'game') ? 'visible' : 'hidden';
@@ -1063,13 +1066,16 @@ const App = {
         const data = this.state.savedLevels[n];
         console.log(`Level ${n} has ${data.length} arrows`);
         
-        // Сбрасываем solved для текущего уровня при загрузке
+        // ВАЖНО: сбрасываем solved для текущего уровня при загрузке
         data.forEach(a => {
             a.solved = false;
         });
         
         // Создаем стрелки
+        let arrowsCreated = 0;
         data.forEach(a => {
+            if (a.solved) return;
+            
             const wrap = document.createElement('div');
             wrap.className = 'arrow-box'; 
             wrap.style.width = wrap.style.height = arrowSize + 'px';
@@ -1087,7 +1093,10 @@ const App = {
             
             wrap.onclick = () => this.move(a, wrap, arrowSize);
             b.appendChild(wrap);
+            arrowsCreated++;
         });
+        
+        console.log(`Created ${arrowsCreated} arrows for level ${n}`);
         
         // Для Telegram: дополнительная проверка отрисовки
         if (this.isTelegram) {
@@ -1276,10 +1285,15 @@ const App = {
                 } else {
                     // Стрелка улетает
                     el.style.opacity = '0';
+                    el.style.pointerEvents = 'none';
                     a.solved = true;
                     
                     // Проверяем завершение уровня
-                    if(data.every(x => x.solved)) {
+                    const allSolved = data.every(x => x.solved);
+                    console.log(`Arrow solved. All solved: ${allSolved}, Level ${this.curNum}`);
+                    
+                    if(allSolved) {
+                        console.log('🎉 Level completed! Showing win screen...');
                         setTimeout(() => this.showWin(), 300);
                     }
                 }
@@ -1290,39 +1304,65 @@ const App = {
         requestAnimationFrame(animateStep);
     },
 
+    // ИСПРАВЛЕННЫЙ МЕТОД showWin()
     showWin() {
+        console.log('🏆 Showing win screen for level', this.curNum);
+        
         const coinsEarned = 20;
         this.state.coins += coinsEarned;
-        if(this.curNum === this.state.maxLvl) this.state.maxLvl++;
+        
+        // Увеличиваем максимальный уровень только если текущий равен максимальному
+        if(this.curNum >= this.state.maxLvl) {
+            this.state.maxLvl = this.curNum + 1;
+            console.log(`Max level increased to ${this.state.maxLvl}`);
+        }
         
         // Добавляем уровень в пройденные
         if (!this.state.completedLevels.includes(this.curNum)) {
             this.state.completedLevels.push(this.curNum);
+            console.log(`Added level ${this.curNum} to completed levels`);
         }
         
         // ПРИНУДИТЕЛЬНО сохраняем прогресс
         this.forceSaveState();
         
+        // Обновляем UI
         this.updateUI();
         
+        // Обновляем счет на сервере если подключен Telegram
         if (this.state.tgConnected) {
             this.updateScore();
         }
         
+        // Показываем анимацию монет
         this.showCoinsAnimation(coinsEarned);
+        
+        // Выбираем случайное поздравление
         const arr = this.praise[this.state.lang];
         const txt = arr[Math.floor(Math.random() * arr.length)];
         const title = document.getElementById('win-msg');
-        title.innerText = txt;
-        title.classList.remove('show');
-        document.getElementById('coins-earned-amount').innerText = coinsEarned;
+        const coinsAmount = document.getElementById('coins-earned-amount');
         
+        if (title) {
+            title.innerText = txt;
+            title.classList.remove('show');
+        }
+        if (coinsAmount) {
+            coinsAmount.innerText = coinsEarned;
+        }
+        
+        // Переходим на экран победы
         this.nav('win');
+        
+        // Запускаем анимации с небольшой задержкой
         setTimeout(() => {
             this.playAudio('victory');
             this.vibrate('victory');
             Confetti.start();
-            title.classList.add('show');
+            if (title) {
+                title.classList.add('show');
+            }
+            console.log('✅ Win screen fully shown');
         }, 100);
     },
 
