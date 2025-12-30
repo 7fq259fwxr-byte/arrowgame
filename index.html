@@ -118,6 +118,14 @@
         .big-btn:active { transform: scale(0.95); }
         .btn-menu { background: var(--c-gray); color: #555; }
         .btn-next { background: var(--c-blue); color: white; box-shadow: 0 8px 20px rgba(0,51,102,0.25); }
+        
+        .next-level-label {
+            font-size: 1rem;
+            color: var(--c-blue);
+            opacity: 0.8;
+            margin-top: 5px;
+            font-weight: bold;
+        }
 
         .grid-line { position: absolute; background: rgba(0, 51, 102, 0.05); z-index: 1; }
         
@@ -228,8 +236,8 @@
         </div>
         
         <div class="stats-row">
-            <button onclick="App.nav('stats')" style="padding:10px 20px; background:var(--c-blue); color:white; border:none; border-radius:10px; font-weight:bold;">Stats</button>
-            <button onclick="App.nav('shop')" style="padding:10px 20px; background:var(--c-gold); color:white; border:none; border-radius:10px; font-weight:bold;">Shop</button>
+            <button onclick="App.nav('stats')" style="padding:10px 20px; background:var(--c-blue); color:white; border:none; border-radius:10px; font-weight:bold;" id="btn-stats">Stats</button>
+            <button onclick="App.nav('shop')" style="padding:10px 20px; background:var(--c-gold); color:white; border:none; border-radius:10px; font-weight:bold;" id="btn-shop">Shop</button>
         </div>
     </div>
 
@@ -245,9 +253,10 @@
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/></svg>
                 +<span id="coins-earned-amount">20</span>
             </div>
+            <div class="next-level-label" id="next-level-label">Next: Level 2</div>
             <div class="btn-row">
                 <button class="big-btn btn-menu" id="btn-win-menu" onclick="App.nav('home')">Menu</button>
-                <button class="big-btn btn-next" id="btn-win-next" onclick="App.nextLvl()">Next</button>
+                <button class="big-btn btn-next" id="btn-win-next" onclick="App.nextLvl()">Level 2</button>
             </div>
         </div>
     </div>
@@ -258,7 +267,7 @@
 
     <div id="scr-stats" class="screen">
         <div style="padding: 20px;">
-            <h2 style="color: var(--c-blue); margin-bottom: 20px;">Statistics</h2>
+            <h2 style="color: var(--c-blue); margin-bottom: 20px;" id="stats-title">Statistics</h2>
             
             <div id="stats-loading" class="loading" style="display: none;">
                 <div class="loading-spinner"></div>
@@ -266,21 +275,21 @@
             
             <div class="stat-card" id="stats-card" style="display: none;">
                 <div class="stat-row">
-                    <span class="stat-label">Total Levels Passed:</span>
+                    <span class="stat-label" id="stat-levels">Total Levels Passed:</span>
                     <span class="stat-value" id="stats-levels">0</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">Total Coins:</span>
+                    <span class="stat-label" id="stat-coins">Total Coins:</span>
                     <span class="stat-value" id="stats-coins">0</span>
                 </div>
                 <div class="stat-row">
-                    <span class="stat-label">Global Rank:</span>
+                    <span class="stat-label" id="stat-rank">Global Rank:</span>
                     <span class="stat-value" id="stats-rank">-</span>
                 </div>
             </div>
             
             <div style="margin-top: 30px;">
-                <h3 style="color: var(--c-blue); margin-bottom: 15px;">Leaderboard</h3>
+                <h3 style="color: var(--c-blue); margin-bottom: 15px;" id="leaderboard-title">Leaderboard</h3>
                 <div id="leaderboard-loading" class="loading">
                     <div class="loading-spinner"></div>
                 </div>
@@ -292,19 +301,19 @@
 
     <div id="scr-shop" class="screen">
         <div style="padding: 20px;">
-            <h2 style="color: var(--c-blue); margin-bottom: 20px;">Shop</h2>
+            <h2 style="color: var(--c-blue); margin-bottom: 20px;" id="shop-title">Shop</h2>
             <div id="shop-content" style="text-align: center; padding: 40px 20px;">
-                <div style="font-size: 1.2rem; margin-bottom: 20px;">Shop will be available soon!</div>
-                <div style="color: #666;">Connect via Telegram for full features</div>
+                <div style="font-size: 1.2rem; margin-bottom: 20px;" id="shop-coming">Shop will be available soon!</div>
+                <div style="color: #666;" id="shop-connect">Connect via Telegram for full features</div>
             </div>
         </div>
     </div>
 
     <div id="scr-set" class="screen">
-        <div class="set-row"><span>Sound</span><div class="toggle" id="tog-sound" onclick="App.toggle('sound')"></div></div>
-        <div class="set-row"><span>Vibration</span><div class="toggle" id="tog-vib" onclick="App.toggle('vib')"></div></div>
+        <div class="set-row"><span id="set-sound">Sound</span><div class="toggle" id="tog-sound" onclick="App.toggle('sound')"></div></div>
+        <div class="set-row"><span id="set-vibration">Vibration</span><div class="toggle" id="tog-vib" onclick="App.toggle('vib')"></div></div>
         <div class="set-row" style="flex-direction: column; gap: 15px; align-items: flex-start;">
-            <span>Language</span>
+            <span id="set-language">Language</span>
             <div style="display: flex; gap: 8px;">
                 <button class="l-btn" id="l-ru" onclick="App.setLang('ru')">RU</button>
                 <button class="l-btn" id="l-en" onclick="App.setLang('en')">EN</button>
@@ -312,7 +321,7 @@
             </div>
         </div>
         <div class="set-row" style="flex-direction: column; gap: 15px; align-items: flex-start;">
-            <span>Telegram Status:</span>
+            <span id="set-telegram">Telegram Status:</span>
             <div style="font-family: monospace; font-size: 0.9rem; color: #666;" id="tg-user-id">Not connected</div>
         </div>
     </div>
@@ -326,9 +335,9 @@
 
     <div class="modal" id="modal-timers">
         <div class="modal-body">
-            <h3 style="color:var(--c-blue); margin-bottom:15px;">Recovery</h3>
+            <h3 style="color:var(--c-blue); margin-bottom:15px;" id="recovery-title">Recovery</h3>
             <div id="timers-list" style="margin:20px 0; max-height: 200px; overflow-y:auto;"></div>
-            <button onclick="App.hideModal()" style="padding:12px 30px; background:var(--c-blue); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer;">OK</button>
+            <button onclick="App.hideModal()" style="padding:12px 30px; background:var(--c-blue); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer;" id="modal-ok">OK</button>
         </div>
     </div>
 </div>
@@ -469,9 +478,7 @@ const App = {
         coins: 0,
         skins: ['default'],
         selectedSkin: 'default',
-        // Добавляем историю пройденных уровней
         completedLevels: [],
-        // Добавляем текущий прогресс
         currentProgress: {
             level: 1,
             stats: {
@@ -484,9 +491,96 @@ const App = {
     curNum: 1,
     boardSize: 5,
     trans: {
-        ru: { lvl: "УРОВЕНЬ" },
-        en: { lvl: "LEVEL" },
-        zh: { lvl: "关卡" }
+        ru: { 
+            lvl: "УРОВЕНЬ",
+            victory: "Победа!",
+            nextLevel: "Следующий",
+            menu: "Меню",
+            stats: "Статистика",
+            shop: "Магазин",
+            sound: "Звук",
+            vibration: "Вибрация",
+            language: "Язык",
+            telegramStatus: "Статус Telegram",
+            connected: "Подключено",
+            notConnected: "Не подключено",
+            recovery: "Восстановление",
+            ok: "OK",
+            fullHp: "Полное HP",
+            heart: "Сердце",
+            totalLevels: "Всего пройдено уровней:",
+            totalCoins: "Всего монет:",
+            globalRank: "Глобальный ранг:",
+            leaderboard: "Таблица лидеров",
+            shopTitle: "Магазин",
+            shopComing: "Магазин скоро будет доступен!",
+            shopConnect: "Подключитесь через Telegram для полного доступа",
+            noPlayers: "Пока нет игроков. Будьте первым!",
+            you: "(Вы)",
+            connectTelegram: "Подключить Telegram",
+            connectedDemo: "Подключено (Демо режим)",
+            level: "Уровень"
+        },
+        en: { 
+            lvl: "LEVEL",
+            victory: "Victory!",
+            nextLevel: "Next",
+            menu: "Menu",
+            stats: "Statistics",
+            shop: "Shop",
+            sound: "Sound",
+            vibration: "Vibration",
+            language: "Language",
+            telegramStatus: "Telegram Status",
+            connected: "Connected",
+            notConnected: "Not connected",
+            recovery: "Recovery",
+            ok: "OK",
+            fullHp: "Full HP",
+            heart: "Heart",
+            totalLevels: "Total Levels Passed:",
+            totalCoins: "Total Coins:",
+            globalRank: "Global Rank:",
+            leaderboard: "Leaderboard",
+            shopTitle: "Shop",
+            shopComing: "Shop will be available soon!",
+            shopConnect: "Connect via Telegram for full features",
+            noPlayers: "No players yet. Be the first!",
+            you: "(You)",
+            connectTelegram: "Connect Telegram",
+            connectedDemo: "Connected (Demo Mode)",
+            level: "Level"
+        },
+        zh: { 
+            lvl: "关卡",
+            victory: "胜利!",
+            nextLevel: "下一关",
+            menu: "菜单",
+            stats: "统计",
+            shop: "商店",
+            sound: "声音",
+            vibration: "振动",
+            language: "语言",
+            telegramStatus: "Telegram 状态",
+            connected: "已连接",
+            notConnected: "未连接",
+            recovery: "恢复",
+            ok: "确定",
+            fullHp: "满血",
+            heart: "心",
+            totalLevels: "总通过关卡:",
+            totalCoins: "总金币:",
+            globalRank: "全球排名:",
+            leaderboard: "排行榜",
+            shopTitle: "商店",
+            shopComing: "商店即将开放!",
+            shopConnect: "通过 Telegram 连接以获得完整功能",
+            noPlayers: "还没有玩家。成为第一个!",
+            you: "(你)",
+            connectTelegram: "连接 Telegram",
+            connectedDemo: "已连接 (演示模式)",
+            level: "关卡"
+        }
     },
     praise: {
         ru: ["Отлично!", "Супер!", "Победа!", "Гениально!", "Класс!", "Ура!", "Великолепно!"],
@@ -496,22 +590,19 @@ const App = {
     audioCtx: null,
     busy: false,
     isTelegram: false,
-    storageKey: 'arrows_pro_ultra_v4',
+    storageKey: 'arrows_pro_ultra_v5',
     saveQueue: [],
     isSaving: false,
 
     async init() {
         console.log('App initializing...');
         
-        // Определяем среду
         this.isTelegram = !!(window.Telegram && Telegram.WebApp);
         console.log('Is Telegram:', this.isTelegram);
         
         try {
-            // Загружаем состояние
             await this.loadState();
             
-            // Инициализируем Telegram если есть
             if (this.isTelegram) {
                 this.initTelegramWebApp();
             }
@@ -537,12 +628,10 @@ const App = {
         }
     },
 
-    // УЛУЧШЕННЫЙ МЕТОД loadState - работаем с разными хранилищами
     async loadState() {
         try {
             console.log('🔍 Loading state from storage...');
             
-            // Пробуем localStorage в первую очередь (самый быстрый)
             try {
                 const localData = localStorage.getItem(this.storageKey);
                 if (localData) {
@@ -559,7 +648,6 @@ const App = {
                 console.warn('⚠️ localStorage error:', e);
             }
             
-            // Если в localStorage нет данных и мы в Telegram
             if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage?.getItem) {
                 try {
                     console.log('🔄 Trying Telegram Cloud Storage...');
@@ -569,7 +657,6 @@ const App = {
                         this.applySavedState(saved);
                         console.log('✅ Loaded from Telegram Cloud Storage');
                         
-                        // Сохраняем в localStorage для быстрого доступа в будущем
                         try {
                             localStorage.setItem(this.storageKey, data);
                         } catch (e) {}
@@ -592,9 +679,7 @@ const App = {
         }
     },
 
-    // Применяем сохраненное состояние
     applySavedState(saved) {
-        // Важные поля которые должны быть всегда
         const defaultState = {
             maxLvl: 1,
             lives: 3,
@@ -604,12 +689,10 @@ const App = {
             tgConnected: false
         };
         
-        // Объединяем с дефолтными значениями
         this.state = {
             ...defaultState,
-            ...this.state, // текущие настройки (звук, вибрация и т.д.)
+            ...this.state,
             ...saved,
-            // Гарантируем что важные поля не undefined
             maxLvl: saved.maxLvl || defaultState.maxLvl,
             lives: saved.lives || defaultState.lives,
             coins: saved.coins || defaultState.coins,
@@ -618,31 +701,24 @@ const App = {
         };
     },
 
-    // НОВЫЙ МЕТОД - Инициализация уровней по умолчанию
     initializeDefaultLevels() {
         console.log('🔄 Initializing default levels...');
-        // Создаем базовую структуру сохранений для первых 5 уровней
         for(let i = 1; i <= 5; i++) {
             if(!this.state.savedLevels[i]) {
                 this.state.savedLevels[i] = this.generate(i, this.getBoardSizeForLevel(i));
             }
         }
-        // Немедленно сохраняем начальное состояние
         this.forceSaveState();
     },
 
-    // УЛУЧШЕННЫЙ МЕТОД saveState - с очередью и гарантированным сохранением
     async saveState() {
-        // Добавляем в очередь
         this.saveQueue.push({...this.state});
         
-        // Если уже сохраняем, выходим
         if (this.isSaving) return;
         
         this.isSaving = true;
         
         try {
-            // Берем последнее состояние из очереди
             const stateToSave = this.saveQueue[this.saveQueue.length - 1] || this.state;
             const dataToSave = JSON.stringify(stateToSave);
             
@@ -652,7 +728,6 @@ const App = {
                 completedLevels: stateToSave.completedLevels.length
             });
             
-            // 1. Всегда сохраняем в localStorage (самый быстрый и надежный)
             try {
                 localStorage.setItem(this.storageKey, dataToSave);
                 console.log('✅ Saved to localStorage');
@@ -660,24 +735,20 @@ const App = {
                 console.warn('⚠️ localStorage save error:', e);
             }
             
-            // 2. Если в Telegram - сохраняем и в Cloud Storage
             if (this.isTelegram) {
                 try {
-                    // Проверяем наличие CloudStorage
                     if (window.Telegram?.WebApp?.CloudStorage?.setItem) {
                         await Telegram.WebApp.CloudStorage.setItem(this.storageKey, dataToSave);
                         console.log('✅ Saved to Telegram Cloud Storage');
                     }
                 } catch (e) {
                     console.error('❌ Telegram Cloud Storage save error:', e);
-                    // Пробуем сохранить в localStorage как резервную копию
                     try {
                         localStorage.setItem(`${this.storageKey}_backup`, dataToSave);
                     } catch (e2) {}
                 }
             }
             
-            // Очищаем очередь
             this.saveQueue = [];
             
         } catch (e) {
@@ -687,12 +758,10 @@ const App = {
         }
     },
 
-    // Принудительное сохранение (для критически важных моментов)
     forceSaveState() {
         console.log('🚨 Force saving state...');
         const dataToSave = JSON.stringify(this.state);
         
-        // Сохраняем в оба места синхронно
         try {
             localStorage.setItem(this.storageKey, dataToSave);
             console.log('✅ Force saved to localStorage');
@@ -700,7 +769,6 @@ const App = {
             console.error('❌ Force localStorage save error:', e);
         }
         
-        // Для Telegram отправляем в Cloud Storage асинхронно
         if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage?.setItem) {
             Telegram.WebApp.CloudStorage.setItem(this.storageKey, dataToSave)
                 .then(() => console.log('✅ Force saved to Telegram Cloud Storage'))
@@ -722,7 +790,6 @@ const App = {
                     this.state.tgLastName = user.last_name;
                     this.state.tgConnected = true;
                     
-                    // Сразу сохраняем состояние с Telegram данными
                     this.forceSaveState();
                     
                     this.loadUserData();
@@ -764,13 +831,13 @@ const App = {
                     this.state.selectedSkin = data.user.selected_skin || 'default';
                     this.updateUI();
                     
-                    // Сразу сохраняем полученные данные
                     this.forceSaveState();
                     
                     document.getElementById('tg-info').style.display = 'block';
                     document.getElementById('nickname-display').innerText = this.state.tgUsername;
                     document.getElementById('btn-connect-tg').style.display = 'none';
                     document.getElementById('tg-user-id').innerText = `ID: ${this.state.tgUserId}`;
+                    document.getElementById('tg-connected').innerText = this.trans[this.state.lang].connected;
                 } else {
                     if (data.error === 'User not found') this.showTelegramConnectionButton();
                 }
@@ -801,7 +868,6 @@ const App = {
                 if (data.success) {
                     this.state.coins = data.coins;
                     this.updateUI();
-                    // Сразу сохраняем обновленные монеты
                     this.saveState();
                 }
             }
@@ -842,7 +908,7 @@ const App = {
         list.innerHTML = '';
         
         if (!leaderboard || leaderboard.length === 0) {
-            list.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No players yet. Be the first!</div>';
+            list.innerHTML = `<div style="text-align: center; padding: 20px; color: #666;">${this.trans[this.state.lang].noPlayers}</div>`;
             return;
         }
         
@@ -862,12 +928,12 @@ const App = {
             name.className = 'leader-name';
             name.innerText = player.username || `Player${player.user_id}`;
             if (isCurrentUser) {
-                name.innerHTML += ' <span style="color: var(--c-blue); font-size: 0.8em;">(You)</span>';
+                name.innerHTML += ` <span style="color: var(--c-blue); font-size: 0.8em;">${this.trans[this.state.lang].you}</span>`;
             }
             
             const levels = document.createElement('div');
             levels.className = 'leader-levels';
-            levels.innerText = `${player.score} Levels`;
+            levels.innerText = `${player.score} ${this.trans[this.state.lang].level}`;
             
             row.appendChild(rank);
             row.appendChild(name);
@@ -882,14 +948,14 @@ const App = {
         this.state.tgUsername = `@DemoUser${demoUserId}`;
         this.state.tgConnected = true;
         this.state.coins = 100;
-        this.state.maxLvl = Math.max(this.state.maxLvl, 5); // Сохраняем текущий прогресс
+        this.state.maxLvl = Math.max(this.state.maxLvl, 5);
         this.updateUI();
-        this.forceSaveState(); // Принудительно сохраняем
+        this.forceSaveState();
         document.getElementById('tg-info').style.display = 'block';
         document.getElementById('nickname-display').innerText = this.state.tgUsername;
         document.getElementById('btn-connect-tg').style.display = 'none';
         document.getElementById('tg-user-id').innerText = `ID: ${this.state.tgUserId}`;
-        document.getElementById('tg-connected').innerText = 'Connected (Demo Mode)';
+        document.getElementById('tg-connected').innerText = this.trans[this.state.lang].connectedDemo;
         alert('Connected to Telegram (demo mode)! You can now use all features.');
     },
 
@@ -912,6 +978,69 @@ const App = {
             if (b.id === 'l-'+this.state.lang) b.classList.add('active');
             else b.classList.remove('active');
         });
+        
+        // Update all text elements based on language
+        this.updateAllTexts();
+    },
+
+    updateAllTexts() {
+        const t = this.trans[this.state.lang];
+        
+        // Update button texts
+        const btnStats = document.getElementById('btn-stats');
+        const btnShop = document.getElementById('btn-shop');
+        const btnWinMenu = document.getElementById('btn-win-menu');
+        const btnConnectTg = document.getElementById('btn-connect-tg');
+        const modalOk = document.getElementById('modal-ok');
+        
+        if (btnStats) btnStats.innerText = t.stats;
+        if (btnShop) btnShop.innerText = t.shop;
+        if (btnWinMenu) btnWinMenu.innerText = t.menu;
+        if (btnConnectTg) btnConnectTg.innerText = t.connectTelegram;
+        if (modalOk) modalOk.innerText = t.ok;
+        
+        // Update settings
+        const setSound = document.getElementById('set-sound');
+        const setVibration = document.getElementById('set-vibration');
+        const setLanguage = document.getElementById('set-language');
+        const setTelegram = document.getElementById('set-telegram');
+        
+        if (setSound) setSound.innerText = t.sound;
+        if (setVibration) setVibration.innerText = t.vibration;
+        if (setLanguage) setLanguage.innerText = t.language;
+        if (setTelegram) setTelegram.innerText = t.telegramStatus;
+        
+        // Update stats
+        const statsTitle = document.getElementById('stats-title');
+        const statLevels = document.getElementById('stat-levels');
+        const statCoins = document.getElementById('stat-coins');
+        const statRank = document.getElementById('stat-rank');
+        const leaderboardTitle = document.getElementById('leaderboard-title');
+        
+        if (statsTitle) statsTitle.innerText = t.stats;
+        if (statLevels) statLevels.innerText = t.totalLevels;
+        if (statCoins) statCoins.innerText = t.totalCoins;
+        if (statRank) statRank.innerText = t.globalRank;
+        if (leaderboardTitle) leaderboardTitle.innerText = t.leaderboard;
+        
+        // Update shop
+        const shopTitle = document.getElementById('shop-title');
+        const shopComing = document.getElementById('shop-coming');
+        const shopConnect = document.getElementById('shop-connect');
+        
+        if (shopTitle) shopTitle.innerText = t.shopTitle;
+        if (shopComing) shopComing.innerText = t.shopComing;
+        if (shopConnect) shopConnect.innerText = t.shopConnect;
+        
+        // Update modal
+        const recoveryTitle = document.getElementById('recovery-title');
+        if (recoveryTitle) recoveryTitle.innerText = t.recovery;
+        
+        // Update Telegram status
+        const tgConnected = document.getElementById('tg-connected');
+        if (tgConnected && !this.state.tgConnected) {
+            tgConnected.innerText = t.notConnected;
+        }
     },
 
     nav(scr) {
@@ -949,7 +1078,7 @@ const App = {
             
             if (statsLevels) statsLevels.innerText = this.state.maxLvl - 1;
             if (statsCoins) statsCoins.innerText = this.state.coins;
-            if (statsRank) statsRank.innerText = this.state.tgConnected ? '#?' : 'Not ranked';
+            if (statsRank) statsRank.innerText = this.state.tgConnected ? '#?' : '-';
             
             if (statsLoading) statsLoading.style.display = 'none';
             if (statsCard) statsCard.style.display = 'block';
@@ -996,13 +1125,15 @@ const App = {
         if(this.state.lives <= 0) return this.showTimers();
         this.curNum = n; 
         this.nav('game'); 
-        // Используем setTimeout для гарантии что DOM обновился
         setTimeout(() => {
             this.loadLvl(n);
         }, 50);
     },
 
-    nextLvl() { this.play(this.curNum + 1); },
+    nextLvl() { 
+        const nextLevel = this.curNum + 1;
+        this.play(nextLevel); 
+    },
 
     getBoardSizeForLevel(level) {
         if (level <= 10) return 5;
@@ -1029,13 +1160,10 @@ const App = {
             return;
         }
         
-        // Очищаем доску
         b.innerHTML = '';
         
-        // Устанавливаем размер доски
         this.boardSize = this.getBoardSizeForLevel(n);
         
-        // Определяем размеры
         const boardContainer = document.querySelector('.board-zone');
         if (!boardContainer) return;
         
@@ -1051,38 +1179,30 @@ const App = {
         b.style.display = 'block';
         b.style.visibility = 'visible';
         
-        // Добавляем сетку
         this.addGridLines(b, boardPixelSize);
         
         const cellSize = boardPixelSize / this.boardSize;
         const arrowSize = Math.min(cellSize * 0.85, this.getArrowSizeForLevel(n, this.boardSize));
         
-        // Генерируем уровень если нужно
         if(!this.state.savedLevels[n]) {
             this.state.savedLevels[n] = this.generate(n, this.boardSize);
-            this.saveState(); // Сохраняем сгенерированный уровень
+            this.saveState();
         }
         
         const data = this.state.savedLevels[n];
         console.log(`Level ${n} has ${data.length} arrows`);
         
-        // ВАЖНО: сбрасываем solved для текущего уровня при загрузке
         data.forEach(a => {
             a.solved = false;
         });
         
-        // Создаем стрелки
-        let arrowsCreated = 0;
         data.forEach(a => {
-            if (a.solved) return;
-            
             const wrap = document.createElement('div');
             wrap.className = 'arrow-box'; 
             wrap.style.width = wrap.style.height = arrowSize + 'px';
             wrap.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px'; 
             wrap.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
             
-            // Создаем SVG стрелку
             const track = Geo.getTrackForDirection(a.dir, arrowSize);
             const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
             
@@ -1093,12 +1213,8 @@ const App = {
             
             wrap.onclick = () => this.move(a, wrap, arrowSize);
             b.appendChild(wrap);
-            arrowsCreated++;
         });
         
-        console.log(`Created ${arrowsCreated} arrows for level ${n}`);
-        
-        // Для Telegram: дополнительная проверка отрисовки
         if (this.isTelegram) {
             setTimeout(() => {
                 const arrows = b.querySelectorAll('.arrow-box');
@@ -1112,13 +1228,11 @@ const App = {
         }
     },
 
-    // Принудительная перегенерация первого уровня для Telegram
     forceRegenerateLevel1() {
         delete this.state.savedLevels[1];
         this.state.savedLevels[1] = this.generate(1, this.getBoardSizeForLevel(1));
-        this.forceSaveState(); // Принудительно сохраняем
+        this.forceSaveState();
         
-        // Перезагружаем уровень
         setTimeout(() => {
             this.loadLvl(1);
         }, 50);
@@ -1207,7 +1321,6 @@ const App = {
             }
         }
         
-        // Fallback генерация
         const fallback = [];
         let idCounter = 0;
         const corners = [{x: 0, y: 0, dir: 'R'}, {x: boardSize-1, y: 0, dir: 'L'}, {x: 0, y: boardSize-1, dir: 'R'}, {x: boardSize-1, y: boardSize-1, dir: 'L'}];
@@ -1277,18 +1390,15 @@ const App = {
                 this.hasHitSound = false;
                 
                 if (hit) {
-                    // Возвращаем стрелку в исходное положение
                     const resetSeg = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
                     line.setAttribute('d', resetSeg.d);
                     head.setAttribute('transform', `translate(${resetSeg.head.x},${resetSeg.head.y}) rotate(${resetSeg.head.angle})`);
                     this.loseLife();
                 } else {
-                    // Стрелка улетает
                     el.style.opacity = '0';
                     el.style.pointerEvents = 'none';
                     a.solved = true;
                     
-                    // Проверяем завершение уровня
                     const allSolved = data.every(x => x.solved);
                     console.log(`Arrow solved. All solved: ${allSolved}, Level ${this.curNum}`);
                     
@@ -1304,44 +1414,39 @@ const App = {
         requestAnimationFrame(animateStep);
     },
 
-    // ИСПРАВЛЕННЫЙ МЕТОД showWin()
     showWin() {
         console.log('🏆 Showing win screen for level', this.curNum);
         
         const coinsEarned = 20;
         this.state.coins += coinsEarned;
         
-        // Увеличиваем максимальный уровень только если текущий равен максимальному
         if(this.curNum >= this.state.maxLvl) {
             this.state.maxLvl = this.curNum + 1;
             console.log(`Max level increased to ${this.state.maxLvl}`);
         }
         
-        // Добавляем уровень в пройденные
         if (!this.state.completedLevels.includes(this.curNum)) {
             this.state.completedLevels.push(this.curNum);
             console.log(`Added level ${this.curNum} to completed levels`);
         }
         
-        // ПРИНУДИТЕЛЬНО сохраняем прогресс
         this.forceSaveState();
         
-        // Обновляем UI
         this.updateUI();
         
-        // Обновляем счет на сервере если подключен Telegram
         if (this.state.tgConnected) {
             this.updateScore();
         }
         
-        // Показываем анимацию монет
         this.showCoinsAnimation(coinsEarned);
         
-        // Выбираем случайное поздравление
         const arr = this.praise[this.state.lang];
         const txt = arr[Math.floor(Math.random() * arr.length)];
         const title = document.getElementById('win-msg');
         const coinsAmount = document.getElementById('coins-earned-amount');
+        const nextLevelBtn = document.getElementById('btn-win-next');
+        const nextLevelLabel = document.getElementById('next-level-label');
+        const t = this.trans[this.state.lang];
         
         if (title) {
             title.innerText = txt;
@@ -1351,10 +1456,16 @@ const App = {
             coinsAmount.innerText = coinsEarned;
         }
         
-        // Переходим на экран победы
+        const nextLevel = this.curNum + 1;
+        if (nextLevelBtn) {
+            nextLevelBtn.innerText = `${t.level} ${nextLevel}`;
+        }
+        if (nextLevelLabel) {
+            nextLevelLabel.innerText = `${t.nextLevel}: ${t.level} ${nextLevel}`;
+        }
+        
         this.nav('win');
         
-        // Запускаем анимации с небольшой задержкой
         setTimeout(() => {
             this.playAudio('victory');
             this.vibrate('victory');
@@ -1390,7 +1501,7 @@ const App = {
         if(this.state.lives > 0) {
             this.state.lives--;
             this.state.timers.push(Date.now() + 1200000);
-            this.forceSaveState(); // Принудительно сохраняем при потере жизни
+            this.forceSaveState();
             this.updateUI(); 
             if(this.state.lives === 0) setTimeout(() => this.nav('home'), 500);
         }
@@ -1404,7 +1515,7 @@ const App = {
             return true;
         });
         if(prevLives !== this.state.lives) { 
-            this.saveState(); // Сохраняем при восстановлении жизней
+            this.saveState();
             this.updateUI(); 
         }
         if(document.getElementById('modal-timers').style.display === 'flex') this.renderTimersList();
@@ -1415,8 +1526,10 @@ const App = {
         if (!list) return;
         list.innerHTML = '';
         const now = Date.now(); 
+        const t = this.trans[this.state.lang];
+        
         if(this.state.timers.length === 0) { 
-            list.innerHTML = '<div style="padding:10px; color:#aaa;">Full HP</div>';
+            list.innerHTML = `<div style="padding:10px; color:#aaa;">${t.fullHp}</div>`;
             return; 
         }
         this.state.timers.forEach((end, i) => {
@@ -1425,7 +1538,7 @@ const App = {
             const ss = (diff % 60).toString().padStart(2, '0');
             const div = document.createElement('div'); 
             div.className = 'timer-row';
-            div.innerHTML = `<span>Heart ${i+1}</span><span>${mm}:${ss}</span>`;
+            div.innerHTML = `<span>${t.heart} ${i+1}</span><span>${mm}:${ss}</span>`;
             list.appendChild(div);
         });
     },
@@ -1481,28 +1594,22 @@ const App = {
     }
 };
 
-// Инициализация при загрузке
 window.onload = function() {
     console.log('Page loaded, starting game...');
     
-    // Проверяем Telegram
     const isTelegram = !!(window.Telegram && Telegram.WebApp);
     console.log('Telegram detected:', isTelegram);
     
     try {
-        // Инициализируем Telegram WebApp если есть
         if (isTelegram) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
             
-            // Сохраняем флаг что мы в Telegram
             App.isTelegram = true;
             
-            // Для Telegram Mini Apps добавляем обработку видимости
             document.addEventListener('visibilitychange', function() {
                 if (document.visibilityState === 'visible') {
                     console.log('App became visible, saving state...');
-                    // Принудительно сохраняем при возвращении
                     setTimeout(() => {
                         App.forceSaveState();
                     }, 100);
@@ -1510,7 +1617,6 @@ window.onload = function() {
             });
         }
         
-        // Инициализируем игру
         setTimeout(() => {
             App.init();
             console.log('Game started successfully!');
@@ -1531,13 +1637,11 @@ window.onload = function() {
     }
 };
 
-// Автосохранение перед закрытием
 window.addEventListener('beforeunload', function() {
     console.log('Saving before unload...');
     App.forceSaveState();
 });
 
-// Для iOS Safari
 window.addEventListener('pagehide', function() {
     console.log('Saving on page hide...');
     App.forceSaveState();
