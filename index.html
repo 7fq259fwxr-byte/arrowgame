@@ -121,8 +121,18 @@
         .leaderboard { margin-top: 20px; }
         .leader-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 15px; border-bottom: 1px solid #eee; }
         .leader-rank { width: 30px; text-align: center; font-weight: bold; color: var(--c-blue); }
-        .leader-name { flex: 1; margin: 0 15px; }
-        .leader-levels { font-weight: bold; color: var(--c-gold); }
+        .leader-name { flex: 1; margin: 0 15px; font-weight: bold; }
+        .leader-levels { 
+            font-weight: bold; 
+            color: var(--c-gold); 
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3),
+                        -1px -1px 2px rgba(0, 0, 0, 0.3),
+                        1px -1px 2px rgba(0, 0, 0, 0.3),
+                        -1px 1px 2px rgba(0, 0, 0, 0.3);
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(255, 215, 0, 0.1);
+        }
         .leader-you { background: rgba(0, 51, 102, 0.05); border-radius: 10px; }
         
         .nickname-display { margin: 10px 0; color: var(--c-blue); font-weight: bold; }
@@ -173,6 +183,12 @@
         
         <div class="play-btn" onclick="App.play()">
             <svg width="40" height="40" fill="white" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+        
+        <!-- ДОБАВЛЕНО: Описание цели игры -->
+        <div style="max-width: 300px; text-align: center; margin-bottom: 15px; padding: 10px; background: rgba(0, 51, 102, 0.05); border-radius: 10px; font-size: 0.9rem;">
+            <div style="font-weight: bold; color: var(--c-blue); margin-bottom: 5px;">🎯 Цель игры:</div>
+            <div style="color: #666;">Очисти поле от всех стрелок, нажимая на них в правильном порядке!</div>
         </div>
         
         <div class="stats-row">
