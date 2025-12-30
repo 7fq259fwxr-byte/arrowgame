@@ -1,4 +1,3 @@
-<!-- Updated game HTML/JS (no major changes needed, but ensuring consistency) -->
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -434,20 +433,17 @@ const App = {
     audioCtx: null,
     busy: false,
     isTelegram: false,
-    storageKey: 'arrows_pro_telegram',
+    storageKey: 'arrows_pro_save_v1',
 
     async init() {
         console.log('App initializing...');
         
-        // Определяем среду
         this.isTelegram = !!(window.Telegram && Telegram.WebApp);
         console.log('Is Telegram:', this.isTelegram);
         
         try {
-            // Загружаем состояние
             await this.loadState();
             
-            // Инициализируем Telegram если есть
             if (this.isTelegram) {
                 this.initTelegramWebApp();
             }
@@ -473,56 +469,55 @@ const App = {
         }
     },
 
-    // Загрузка состояния
     async loadState() {
         try {
-            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage) {
-                // Используем Cloud Storage Telegram
-                const keys = await Telegram.WebApp.CloudStorage.getKeys();
-                console.log('Cloud Storage keys:', keys);
-                
-                if (keys && keys.includes(this.storageKey)) {
+            // First try localStorage
+            const localData = localStorage.getItem(this.storageKey);
+            if (localData) {
+                const saved = JSON.parse(localData);
+                this.state = { ...this.state, ...saved };
+                console.log('✅ Loaded from localStorage:', this.state);
+                return;
+            }
+            
+            // If Telegram and no localStorage data, try Cloud Storage
+            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage?.getItem) {
+                try {
                     const data = await Telegram.WebApp.CloudStorage.getItem(this.storageKey);
                     if (data) {
                         const saved = JSON.parse(data);
-                        this.state = {...this.state, ...saved};
-                        console.log('Loaded from Telegram Cloud Storage');
+                        this.state = { ...this.state, ...saved };
+                        console.log('✅ Loaded from Telegram Cloud Storage');
                     }
-                }
-            } else {
-                // Используем localStorage
-                const d = localStorage.getItem(this.storageKey);
-                if (d) {
-                    const saved = JSON.parse(d);
-                    this.state = {...this.state, ...saved};
-                    console.log('Loaded from localStorage');
+                } catch (e) {
+                    console.error('❌ Telegram Cloud Storage error:', e);
                 }
             }
         } catch (e) {
-            console.error('Error loading state:', e);
+            console.error('❌ Error loading state:', e);
         }
     },
 
-    // Сохранение состояния
     async saveState() {
         try {
-            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage) {
-                // Сохраняем в Cloud Storage Telegram
-                await Telegram.WebApp.CloudStorage.setItem(this.storageKey, JSON.stringify(this.state));
-                console.log('Saved to Telegram Cloud Storage');
-            } else {
-                // Сохраняем в localStorage
-                localStorage.setItem(this.storageKey, JSON.stringify(this.state));
-                console.log('Saved to localStorage');
+            const dataToSave = JSON.stringify(this.state);
+            
+            // Always save to localStorage
+            localStorage.setItem(this.storageKey, dataToSave);
+            console.log('💾 Saved to localStorage');
+            
+            // If Telegram, save to Cloud Storage too
+            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage?.setItem) {
+                try {
+                    await Telegram.WebApp.CloudStorage.setItem(this.storageKey, dataToSave);
+                    console.log('💾 Saved to Telegram Cloud Storage');
+                } catch (e) {
+                    console.error('❌ Telegram Cloud Storage save error:', e);
+                }
             }
         } catch (e) {
-            console.error('Error saving state:', e);
+            console.error('❌ Error saving state:', e);
         }
-    },
-
-    // Алиас для совместимости
-    save() { 
-        this.saveState();
     },
 
     initTelegramWebApp() {
@@ -802,7 +797,6 @@ const App = {
         if(this.state.lives <= 0) return this.showTimers();
         this.curNum = n; 
         this.nav('game'); 
-        // Используем setTimeout для гарантии что DOM обновился
         setTimeout(() => {
             this.loadLvl(n);
         }, 50);
@@ -835,13 +829,10 @@ const App = {
             return;
         }
         
-        // Очищаем доску
         b.innerHTML = '';
         
-        // Устанавливаем размер доски
         this.boardSize = this.getBoardSizeForLevel(n);
         
-        // Определяем размеры
         const boardContainer = document.querySelector('.board-zone');
         if (!boardContainer) return;
         
@@ -857,13 +848,11 @@ const App = {
         b.style.display = 'block';
         b.style.visibility = 'visible';
         
-        // Добавляем сетку
         this.addGridLines(b, boardPixelSize);
         
         const cellSize = boardPixelSize / this.boardSize;
         const arrowSize = Math.min(cellSize * 0.85, this.getArrowSizeForLevel(n, this.boardSize));
         
-        // Генерируем уровень если нужно
         if(!this.state.savedLevels[n]) {
             this.state.savedLevels[n] = this.generate(n, this.boardSize);
             this.saveState();
@@ -872,26 +861,17 @@ const App = {
         const data = this.state.savedLevels[n];
         console.log(`Level ${n} has ${data.length} arrows`);
         
-        // Для Telegram: всегда сбрасываем solved для текущего уровня при загрузке
-        // Но сохраняем прогресс в savedLevels
         data.forEach(a => {
-            // Если уровень не решен, сбрасываем solved
-            if (!data.every(x => x.solved)) {
-                a.solved = false;
-            }
+            a.solved = false;
         });
         
-        // Создаем стрелки
         data.forEach(a => {
-            if(a.solved) return;
-            
             const wrap = document.createElement('div');
             wrap.className = 'arrow-box'; 
             wrap.style.width = wrap.style.height = arrowSize + 'px';
             wrap.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px'; 
             wrap.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
             
-            // Создаем SVG стрелку
             const track = Geo.getTrackForDirection(a.dir, arrowSize);
             const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
             
@@ -903,31 +883,6 @@ const App = {
             wrap.onclick = () => this.move(a, wrap, arrowSize);
             b.appendChild(wrap);
         });
-        
-        // Для Telegram: дополнительная проверка отрисовки
-        if (this.isTelegram) {
-            setTimeout(() => {
-                const arrows = b.querySelectorAll('.arrow-box');
-                console.log(`Actually rendered ${arrows.length} arrows for level ${n}`);
-                
-                if (arrows.length === 0 && n === 1) {
-                    console.log('No arrows rendered in Telegram, forcing regeneration...');
-                    this.forceRegenerateLevel1();
-                }
-            }, 100);
-        }
-    },
-
-    // Принудительная перегенерация первого уровня для Telegram
-    forceRegenerateLevel1() {
-        delete this.state.savedLevels[1];
-        this.state.savedLevels[1] = this.generate(1, this.getBoardSizeForLevel(1));
-        this.saveState();
-        
-        // Перезагружаем уровень
-        setTimeout(() => {
-            this.loadLvl(1);
-        }, 50);
     },
 
     addGridLines(board, boardSize) {
@@ -1013,7 +968,6 @@ const App = {
             }
         }
         
-        // Fallback генерация
         const fallback = [];
         let idCounter = 0;
         const corners = [{x: 0, y: 0, dir: 'R'}, {x: boardSize-1, y: 0, dir: 'L'}, {x: 0, y: boardSize-1, dir: 'R'}, {x: boardSize-1, y: boardSize-1, dir: 'L'}];
@@ -1083,20 +1037,16 @@ const App = {
                 this.hasHitSound = false;
                 
                 if (hit) {
-                    // Возвращаем стрелку в исходное положение
                     const resetSeg = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
                     line.setAttribute('d', resetSeg.d);
                     head.setAttribute('transform', `translate(${resetSeg.head.x},${resetSeg.head.y}) rotate(${resetSeg.head.angle})`);
                     this.loseLife();
                 } else {
-                    // Стрелка улетает
                     el.style.opacity = '0';
                     a.solved = true;
                     
-                    // Сохраняем прогресс
                     this.saveState();
                     
-                    // Проверяем завершение уровня
                     if(data.every(x => x.solved)) {
                         setTimeout(() => this.showWin(), 300);
                     }
@@ -1113,7 +1063,6 @@ const App = {
         this.state.coins += coinsEarned;
         if(this.curNum === this.state.maxLvl) this.state.maxLvl++;
         
-        // Сохраняем прогресс
         this.saveState();
         
         this.updateUI();
@@ -1242,36 +1191,20 @@ const App = {
     }
 };
 
-// Инициализация при загрузке
 window.onload = function() {
     console.log('Page loaded, starting game...');
     
-    // Проверяем Telegram
     const isTelegram = !!(window.Telegram && Telegram.WebApp);
     console.log('Telegram detected:', isTelegram);
     
     try {
-        // Инициализируем Telegram WebApp если есть
         if (isTelegram) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
             
-            // Сохраняем флаг что мы в Telegram
             App.isTelegram = true;
-            
-            // Для Telegram Mini Apps добавляем обработку видимости
-            document.addEventListener('visibilitychange', function() {
-                if (document.visibilityState === 'visible') {
-                    console.log('App became visible, saving state...');
-                    // Сохраняем состояние при возвращении
-                    setTimeout(() => {
-                        App.saveState();
-                    }, 100);
-                }
-            });
         }
         
-        // Инициализируем игру
         setTimeout(() => {
             App.init();
             console.log('Game started successfully!');
@@ -1292,13 +1225,11 @@ window.onload = function() {
     }
 };
 
-// Автосохранение перед закрытием
 window.addEventListener('beforeunload', function() {
     console.log('Saving before unload...');
     App.saveState();
 });
 
-// Для iOS Safari
 window.addEventListener('pagehide', function() {
     console.log('Saving on page hide...');
     App.saveState();
