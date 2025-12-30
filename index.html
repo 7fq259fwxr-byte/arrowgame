@@ -39,9 +39,9 @@
         .board-zone.error-shake #board { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both, redFlash 0.5s ease-out; }
 
         .arrow-box { position: absolute; cursor: pointer; z-index: 2; transition: opacity 0.1s; }
-        .arrow-svg { width: 100%; height: 100%; overflow: visible; display: block; }
+        .arrow-svg { width: 100%; height: 100%; display: block; overflow: visible; /* ВАЖНО ДЛЯ IOS */ }
         .p-line { fill: none; stroke: var(--c-blue); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; transition: stroke 0.2s; }
-        .p-head { fill: var(--c-blue); transition: fill 0.2s; }
+        .p-head { fill: var(--c-blue); transition: fill 0.2s; stroke: none; }
         .arrow-box.error-arr .p-line { stroke: var(--c-red); }
         .arrow-box.error-arr .p-head { fill: var(--c-red); }
 
@@ -113,11 +113,28 @@
         .loading-spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--c-blue); border-radius: 50%; animation: spin 1s linear infinite; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* VERSION LABEL */
+        .version-lbl {
+            position: absolute;
+            bottom: 85px; /* Above nav bar */
+            right: 15px;
+            font-size: 12px;
+            color: rgba(0, 51, 102, 0.3);
+            font-weight: bold;
+            pointer-events: none;
+            z-index: 2000;
+            background: rgba(255,255,255,0.7);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
 
 <div id="app">
+    <div class="version-lbl">v1.0.1</div>
+
     <div class="top-ui" id="main-header">
         <div class="top-left-group">
             <div class="lives-pill" onclick="App.showTimers()">
@@ -370,29 +387,35 @@ const Geo = {
         d += ` L ${pEnd.x} ${pEnd.y}`;
         return { d, head: pEnd };
     },
-    // FIX: DIRECT SVG EMBEDDING CALCULATOR
-    getArrowPoints(tipX, tipY, angle) {
-        const rad = angle * (Math.PI / 180);
-        const cos = Math.cos(rad);
-        const sin = Math.sin(rad);
-        // Original polygon relative coords: -6,-6, 6,0 (tip), -6,6
-        // But since tip is at tipX, tipY, we treat 6,0 as the anchor
-        const transform = (dx, dy) => {
-            // Rotate dx, dy
-            const rx = dx * cos - dy * sin;
-            const ry = dx * sin + dy * cos;
-            return (tipX + rx) + ',' + (tipY + ry);
-        };
-        // The shape relative to the TIP (0,0) would be:
-        // Tip is 0,0. Back-top is -12, -6. Back-bottom is -12, 6.
-        // Based on original points: -6,-6 6,0 -6,6.
-        // Center is 0,0. Tip is at 6,0. 
-        // So relative to Tip(6,0):
-        // Tip: 0,0
-        // Top-Back: -12, -6
-        // Bot-Back: -12, 6
+    // FIX: Correct Triangle Geometry Calculation
+    getArrowHeadCoords(tipX, tipY, angleDeg) {
+        const rad = angleDeg * (Math.PI / 180);
+        // Arrow size configuration
+        const length = 14; 
+        const width = 10;
         
-        return `${transform(-12, -6)} ${transform(0, 0)} ${transform(-12, 6)}`;
+        // Vector along the line direction (normalized)
+        const dx = Math.cos(rad);
+        const dy = Math.sin(rad);
+        
+        // Perpendicular vector
+        const px = -dy;
+        const py = dx;
+        
+        // Base of the arrow (center point between back wings)
+        const baseX = tipX - (dx * length);
+        const baseY = tipY - (dy * length);
+        
+        // Wing 1
+        const x1 = baseX + (px * (width / 2));
+        const y1 = baseY + (py * (width / 2));
+        
+        // Wing 2
+        const x2 = baseX - (px * (width / 2));
+        const y2 = baseY - (py * (width / 2));
+        
+        // Return SVG path data for a closed triangle
+        return `M ${tipX} ${tipY} L ${x1} ${y1} L ${x2} ${y2} Z`;
     }
 };
 
@@ -801,13 +824,13 @@ const App = {
             const track = Geo.getTrackForDirection(a.dir, arrowSize);
             const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
             
-            // FIX: Generate static points using helper
-            const headPoints = Geo.getArrowPoints(initialPath.head.x, initialPath.head.y, initialPath.head.angle);
+            // FIX: Use <path> instead of <polygon> to prevent WebKit bugs
+            // FIX: Explicitly set overflow: visible
+            const headPathD = Geo.getArrowHeadCoords(initialPath.head.x, initialPath.head.y, initialPath.head.angle);
 
-            // FIX: No transforms on polygon
-            wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
+            wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}" style="overflow: visible;">
                 <path class="p-line" d="${initialPath.d}" />
-                <polygon class="p-head" points="${headPoints}" />
+                <path class="p-head" d="${headPathD}" />
             </svg>`;
             wrap.onclick = () => this.move(a, wrap, arrowSize);
             b.appendChild(wrap);
@@ -949,11 +972,9 @@ const App = {
             const seg = Geo.getSegmentPath(track, currentTailDist, currentHeadDist);
             line.setAttribute('d', seg.d);
             
-            // FIX: Update points dynamically instead of using transform
-            const newPoints = Geo.getArrowPoints(seg.head.x, seg.head.y, seg.head.angle);
-            head.setAttribute('points', newPoints);
-            // Ensure no transform is stuck
-            head.removeAttribute('transform');
+            // FIX: Recalculate and update D attribute directly
+            const newHeadD = Geo.getArrowHeadCoords(seg.head.x, seg.head.y, seg.head.angle);
+            head.setAttribute('d', newHeadD);
 
             if (p < 1) requestAnimationFrame(animateStep);
             else {
@@ -962,9 +983,8 @@ const App = {
                 if (hit) {
                     const resetSeg = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
                     line.setAttribute('d', resetSeg.d);
-                    // Reset points
-                    const resetPoints = Geo.getArrowPoints(resetSeg.head.x, resetSeg.head.y, resetSeg.head.angle);
-                    head.setAttribute('points', resetPoints);
+                    const resetHeadD = Geo.getArrowHeadCoords(resetSeg.head.x, resetSeg.head.y, resetSeg.head.angle);
+                    head.setAttribute('d', resetHeadD);
                     this.loseLife();
                 } else {
                     el.style.opacity = '0';
