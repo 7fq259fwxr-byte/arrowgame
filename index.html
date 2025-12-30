@@ -614,45 +614,67 @@ const App = {
 
     async loadLeaderboard() {
         try {
+            console.log('Загрузка лидерборда...');
             document.getElementById('leaderboard-loading').style.display = 'flex';
             document.getElementById('leaderboard-list').style.display = 'none';
             document.getElementById('leaderboard-error').style.display = 'none';
             
             const response = await fetch(`${API_BASE_URL}/leaderboard`, {
                 method: 'GET',
-                headers: { 'Accept': 'application/json' }
+                headers: { 
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
             });
+            
+            console.log('Ответ от сервера:', response.status);
+            
             if (response.ok) {
                 const data = await response.json();
+                console.log('Данные лидерборда:', data);
+                
                 if (data.success) {
                     this.renderLeaderboard(data.leaderboard);
                     document.getElementById('leaderboard-loading').style.display = 'none';
                     document.getElementById('leaderboard-list').style.display = 'block';
                 } else {
-                    throw new Error(data.error || 'Unknown error');
+                    throw new Error(data.error || 'Unknown error from server');
                 }
             } else {
                 throw new Error(`Server error: ${response.status}`);
             }
         } catch (error) {
+            console.error('Ошибка загрузки лидерборда:', error);
             document.getElementById('leaderboard-loading').style.display = 'none';
             document.getElementById('leaderboard-error').style.display = 'block';
-            document.getElementById('leaderboard-error').innerText = 'Error loading leaderboard: ' + error.message;
+            document.getElementById('leaderboard-error').innerHTML = `
+                <div style="color: var(--c-red); text-align: center; padding: 20px;">
+                    Ошибка загрузки лидерборда<br>
+                    <small>${error.message}</small>
+                </div>
+            `;
         }
     },
 
     renderLeaderboard(leaderboard) {
         const list = document.getElementById('leaderboard-list');
+        if (!list) return;
+        
         list.innerHTML = '';
         
         if (!leaderboard || leaderboard.length === 0) {
-            list.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">No players yet. Be the first!</div>';
+            list.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Нет игроков. Будьте первым!</div>';
             return;
         }
         
         leaderboard.forEach((player, index) => {
             const row = document.createElement('div');
-            const isCurrentUser = this.state.tgConnected && player.user_id == this.state.tgUserId;
+            
+            // Сравниваем user_id как строки
+            const playerUserId = String(player.user_id);
+            const currentUserId = String(this.state.tgUserId);
+            const isCurrentUser = this.state.tgConnected && playerUserId === currentUserId;
+            
             row.className = `leader-row ${isCurrentUser ? 'leader-you' : ''}`;
             
             const rank = document.createElement('div');
@@ -664,14 +686,21 @@ const App = {
             
             const name = document.createElement('div');
             name.className = 'leader-name';
-            name.innerText = player.username || `Player${player.user_id}`;
+            
+            // Отображаем имя пользователя
+            let displayName = player.username || `Player${player.user_id}`;
+            if (displayName.length > 15) {
+                displayName = displayName.substring(0, 15) + '...';
+            }
+            name.innerText = displayName;
+            
             if (isCurrentUser) {
-                name.innerHTML += ' <span style="color: var(--c-blue); font-size: 0.8em;">(You)</span>';
+                name.innerHTML += ' <span style="color: var(--c-blue); font-size: 0.8em;">(Вы)</span>';
             }
             
             const levels = document.createElement('div');
             levels.className = 'leader-levels';
-            levels.innerText = `${player.score} Levels`;
+            levels.innerText = `${player.score} Уровней`;
             
             row.appendChild(rank);
             row.appendChild(name);
@@ -739,11 +768,17 @@ const App = {
     },
 
     showStatsScreen() {
+        console.log('Показываем экран статистики...');
+        console.log('Текущий пользователь ID:', this.state.tgUserId);
+        console.log('Текущий пользователь подключен:', this.state.tgConnected);
+        
         const statsLoading = document.getElementById('stats-loading');
         const statsCard = document.getElementById('stats-card');
         if (statsLoading) statsLoading.style.display = 'flex';
         if (statsCard) statsCard.style.display = 'none';
+        
         setTimeout(() => {
+            console.log('Загружаем статистику для пользователя...');
             const statsLevels = document.getElementById('stats-levels');
             const statsCoins = document.getElementById('stats-coins');
             const statsRank = document.getElementById('stats-rank');
