@@ -38,46 +38,97 @@
         #board { background: white; border-radius: 25px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid transparent; transition: background 0.3s; }
         .board-zone.error-shake #board { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both, redFlash 0.5s ease-out; }
 
-        /* ПЕРЕРАБОТАННЫЙ СТИЛЬ ДЛЯ СТРЕЛОК - РАБОТАЕТ В TON/TELEGRAM */
-        .arrow-box { 
-            position: absolute; 
-            z-index: 2; 
-            transition: opacity 0.1s;
-            -webkit-user-select: none;
-            -webkit-touch-callout: none;
-            -webkit-tap-highlight-color: rgba(0,0,0,0);
-        }
-        .arrow-box-inner {
-            width: 100%;
-            height: 100%;
-            position: relative;
+        /* НОВЫЙ СПОСОБ ОТРИСОВКИ СТРЕЛОК - HTML/CSS ВМЕСТО SVG */
+        .arrow-container {
+            position: absolute;
+            z-index: 2;
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-origin: center;
         }
-        .arrow-svg { 
-            width: 100%; 
-            height: 100%; 
-            overflow: visible; 
-            display: block;
-            -webkit-transform: translate3d(0,0,0);
-            transform: translate3d(0,0,0);
-            backface-visibility: hidden;
-            -webkit-backface-visibility: hidden;
+        
+        .arrow-body {
+            position: relative;
+            background-color: var(--c-blue);
+            transition: background-color 0.2s;
         }
-        .p-line { 
-            fill: none; 
-            stroke: var(--c-blue); 
-            stroke-width: 5; 
-            stroke-linecap: round; 
-            stroke-linejoin: round; 
-            transition: stroke 0.2s;
-            vector-effect: non-scaling-stroke;
+        
+        .arrow-head {
+            position: absolute;
+            width: 0;
+            height: 0;
+            border-style: solid;
         }
-        .p-head { 
-            fill: var(--c-blue); 
-            transition: fill 0.2s;
+        
+        /* КЛАССЫ ДЛЯ РАЗНЫХ НАПРАВЛЕНИЙ */
+        .arrow-right .arrow-body {
+            width: 80%;
+            height: 8px;
+            border-radius: 4px;
+            left: 0;
         }
-        .arrow-box.error-arr .p-line { stroke: var(--c-red); }
-        .arrow-box.error-arr .p-head { fill: var(--c-red); }
+        .arrow-right .arrow-head {
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 10px 0 10px 15px;
+            border-color: transparent transparent transparent var(--c-blue);
+        }
+        
+        .arrow-left .arrow-body {
+            width: 80%;
+            height: 8px;
+            border-radius: 4px;
+            right: 0;
+        }
+        .arrow-left .arrow-head {
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            border-width: 10px 15px 10px 0;
+            border-color: transparent var(--c-blue) transparent transparent;
+        }
+        
+        .arrow-up .arrow-body {
+            width: 8px;
+            height: 80%;
+            border-radius: 4px;
+            bottom: 0;
+        }
+        .arrow-up .arrow-head {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 0 10px 15px 10px;
+            border-color: transparent transparent var(--c-blue) transparent;
+        }
+        
+        .arrow-down .arrow-body {
+            width: 8px;
+            height: 80%;
+            border-radius: 4px;
+            top: 0;
+        }
+        .arrow-down .arrow-head {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 15px 10px 0 10px;
+            border-color: var(--c-blue) transparent transparent transparent;
+        }
+        
+        /* ЭФФЕКТ ОШИБКИ */
+        .arrow-container.error .arrow-body {
+            background-color: var(--c-red) !important;
+        }
+        .arrow-container.error .arrow-head {
+            border-left-color: var(--c-red) !important;
+            border-right-color: var(--c-red) !important;
+            border-top-color: var(--c-red) !important;
+            border-bottom-color: var(--c-red) !important;
+        }
 
         /* UI */
         #scr-home { align-items: center; justify-content: center; }
@@ -374,35 +425,6 @@ const Geo = {
         }
         let last = points[points.length-1];
         return {x: last[0], y: last[1], angle: 0};
-    },
-    getSegmentPath(points, distStart, distEnd) {
-        if(points.length === 2) {
-            const dx = points[1][0] - points[0][0];
-            const dy = points[1][1] - points[0][1];
-            const totalLen = Math.hypot(dx, dy);
-            const ratioStart = distStart / totalLen;
-            const ratioEnd = distEnd / totalLen;
-            
-            const x1 = points[0][0] + dx * ratioStart;
-            const y1 = points[0][1] + dy * ratioStart;
-            const x2 = points[0][0] + dx * ratioEnd;
-            const y2 = points[0][1] + dy * ratioEnd;
-            
-            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
-            return { d: `M ${x1} ${y1} L ${x2} ${y2}`, head: { x: x2, y: y2, angle: angle } };
-        }
-        
-        let d = "", currentDist = 0;
-        let pStart = this.getPointAtDist(points, Math.max(0, distStart));
-        d += `M ${pStart.x} ${pStart.y}`;
-        for(let i=0; i<points.length-1; i++) {
-            let segLen = Math.hypot(points[i+1][0]-points[i][0], points[i+1][1]-points[i][1]);
-            if(currentDist + segLen > distStart && currentDist + segLen < distEnd) d += ` L ${points[i+1][0]} ${points[i+1][1]}`;
-            currentDist += segLen;
-        }
-        let pEnd = this.getPointAtDist(points, distEnd);
-        d += ` L ${pEnd.x} ${pEnd.y}`;
-        return { d, head: pEnd };
     }
 };
 
@@ -439,7 +461,6 @@ const App = {
     },
     audioCtx: null,
     busy: false,
-    svgNamespace: "http://www.w3.org/2000/svg",
 
     init() {
         console.log('App initializing...');
@@ -763,7 +784,9 @@ const App = {
         this.nav('game'); 
         // Используем requestAnimationFrame для гарантированного обновления DOM
         requestAnimationFrame(() => {
-            this.loadLvl(n);
+            setTimeout(() => {
+                this.loadLvl(n);
+            }, 10);
         });
     },
 
@@ -818,70 +841,60 @@ const App = {
         data.forEach(a => {
             if(a.solved) return;
             
-            const wrap = document.createElement('div');
-            wrap.className = 'arrow-box'; 
-            wrap.style.width = wrap.style.height = arrowSize + 'px';
-            wrap.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px'; 
-            wrap.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
+            // Создаем контейнер для стрелки
+            const arrowContainer = document.createElement('div');
+            arrowContainer.className = 'arrow-container';
+            arrowContainer.style.width = arrowSize + 'px';
+            arrowContainer.style.height = arrowSize + 'px';
+            arrowContainer.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px';
+            arrowContainer.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
             
-            // Принудительная активация GPU-ускорения для iOS
-            wrap.style.transform = 'translateZ(0)';
-            wrap.style.webkitTransform = 'translateZ(0)';
-            wrap.style.willChange = 'transform';
+            // Добавляем класс направления
+            let directionClass = '';
+            switch(a.dir) {
+                case 'R': directionClass = 'arrow-right'; break;
+                case 'L': directionClass = 'arrow-left'; break;
+                case 'U': directionClass = 'arrow-up'; break;
+                case 'D': directionClass = 'arrow-down'; break;
+            }
+            arrowContainer.classList.add(directionClass);
             
-            // Внутренний контейнер для обработки кликов
-            const inner = document.createElement('div');
-            inner.className = 'arrow-box-inner';
+            // Создаем тело стрелки
+            const arrowBody = document.createElement('div');
+            arrowBody.className = 'arrow-body';
             
-            const track = Geo.getTrackForDirection(a.dir, arrowSize);
-            const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
+            // Создаем голову стрелки
+            const arrowHead = document.createElement('div');
+            arrowHead.className = 'arrow-head';
             
-            // Создаем SVG через DOM API для лучшей совместимости
-            const svg = document.createElementNS(this.svgNamespace, 'svg');
-            svg.setAttribute('class', 'arrow-svg');
-            svg.setAttribute('viewBox', `0 0 ${arrowSize} ${arrowSize}`);
-            svg.setAttribute('width', '100%');
-            svg.setAttribute('height', '100%');
-            svg.style.pointerEvents = 'none';
+            // Добавляем элементы в контейнер
+            arrowContainer.appendChild(arrowBody);
+            arrowContainer.appendChild(arrowHead);
             
-            const path = document.createElementNS(this.svgNamespace, 'path');
-            path.setAttribute('class', 'p-line');
-            path.setAttribute('d', initialPath.d);
-            path.setAttribute('vector-effect', 'non-scaling-stroke');
+            // Сохраняем ссылки на элементы для анимации
+            a.element = arrowContainer;
+            a.bodyElement = arrowBody;
+            a.headElement = arrowHead;
             
-            const polygon = document.createElementNS(this.svgNamespace, 'polygon');
-            polygon.setAttribute('class', 'p-head');
-            polygon.setAttribute('points', '-6,-6 6,0 -6,6');
-            polygon.setAttribute('transform', `translate(${initialPath.head.x},${initialPath.head.y}) rotate(${initialPath.head.angle})`);
-            
-            svg.appendChild(path);
-            svg.appendChild(polygon);
-            
-            inner.appendChild(svg);
-            wrap.appendChild(inner);
-            b.appendChild(wrap);
-            
-            // Обработчик клика с улучшенной обработкой для iOS
-            const handleClick = (e) => {
+            // Обработчик клика
+            arrowContainer.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                this.move(a, {svg, path, polygon}, arrowSize);
-            };
+                this.move(a, arrowSize);
+            });
             
-            inner.addEventListener('click', handleClick);
-            inner.addEventListener('touchstart', (e) => {
+            // Для тач-устройств
+            arrowContainer.addEventListener('touchstart', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
-                // Для iOS также обрабатываем touchstart
-                this.move(a, {svg, path, polygon}, arrowSize);
+                this.move(a, arrowSize);
             }, {passive: false});
             
-            // Сохраняем ссылки для анимации
-            a.svgElement = svg;
-            a.pathElement = path;
-            a.polygonElement = polygon;
-            a.arrowSize = arrowSize;
+            b.appendChild(arrowContainer);
         });
+        
+        // Принудительный reflow для гарантии отрисовки
+        void b.offsetWidth;
     },
 
     addGridLines(board, boardSize) {
@@ -980,69 +993,36 @@ const App = {
         return fallback;
     },
 
-    move(a, elements, arrowSize) {
+    move(a, arrowSize) {
         if(this.busy) return;
         this.busy = true;
         const data = this.state.savedLevels[this.curNum];
         let hit = data.find(o => !o.solved && o.id !== a.id && this.checkCollision(a, o, this.boardSize));
-        const {path, polygon} = elements;
-        const track = Geo.getTrackForDirection(a.dir, arrowSize);
-        const duration = hit ? 300 : 400;
         
-        if(!hit) { this.playAudio('win'); this.vibrate('win'); }
-        let startTime = null;
-        const animateStep = (time) => {
-            if (!startTime) startTime = time;
-            let p = (time - startTime) / duration;
-            if (p > 1) p = 1;
-
-            let distFactor;
-            if (hit) {
-                distFactor = p * arrowSize * 0.5;
-                if(p >= 0.4 && !this.hasHitSound) {
-                    this.hasHitSound = true;
-                    this.playAudio('err'); 
-                    this.vibrate('err');
-                    
-                    // Добавляем классы ошибки к элементам SVG
-                    if (path) path.classList.add('error-arr');
-                    if (polygon) polygon.classList.add('error-arr');
-                    
-                    document.querySelector('.board-zone').classList.add('error-shake');
-                    setTimeout(() => {
-                        document.querySelector('.board-zone').classList.remove('error-shake');
-                        if (path) path.classList.remove('error-arr');
-                        if (polygon) polygon.classList.remove('error-arr');
-                    }, 500);
-                }
-            } else {
-                distFactor = p * arrowSize * 10;
-            }
-
-            const currentHeadDist = arrowSize * 0.4 + distFactor;
-            const currentTailDist = currentHeadDist - arrowSize * 0.4;
-            const seg = Geo.getSegmentPath(track, currentTailDist, currentHeadDist);
+        if(!hit) { 
+            this.playAudio('win'); 
+            this.vibrate('win'); 
+        }
+        
+        const duration = hit ? 300 : 400;
+        const startTime = performance.now();
+        
+        const animateStep = (currentTime) => {
+            const elapsed = currentTime - startTime;
+            let progress = Math.min(elapsed / duration, 1);
             
-            // Обновляем путь
-            if (path) path.setAttribute('d', seg.d);
-            if (polygon) polygon.setAttribute('transform', `translate(${seg.head.x},${seg.head.y}) rotate(${seg.head.angle})`);
-            
-            if (p < 1) {
+            if (progress < 1) {
                 requestAnimationFrame(animateStep);
             } else {
                 this.busy = false;
-                this.hasHitSound = false;
                 if (hit) {
-                    // Возвращаем стрелку в исходное положение
-                    const resetSeg = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
-                    if (path) path.setAttribute('d', resetSeg.d);
-                    if (polygon) polygon.setAttribute('transform', `translate(${resetSeg.head.x},${resetSeg.head.y}) rotate(${resetSeg.head.angle})`);
                     this.loseLife();
+                    if (a.element) {
+                        a.element.classList.remove('error');
+                    }
                 } else {
-                    // Прячем решенную стрелку
-                    const parentEl = path ? path.parentElement : null;
-                    if (parentEl && parentEl.parentElement) {
-                        parentEl.parentElement.style.opacity = '0';
+                    if (a.element) {
+                        a.element.style.opacity = '0';
                     }
                     a.solved = true;
                     if(data.every(x => x.solved)) {
@@ -1050,7 +1030,22 @@ const App = {
                     }
                 }
             }
+            
+            // В середине анимации проверяем столкновение
+            if (hit && progress >= 0.4 && !this.hasHitSound) {
+                this.hasHitSound = true;
+                this.playAudio('err'); 
+                this.vibrate('err');
+                if (a.element) {
+                    a.element.classList.add('error');
+                }
+                document.querySelector('.board-zone').classList.add('error-shake');
+                setTimeout(() => {
+                    document.querySelector('.board-zone').classList.remove('error-shake');
+                }, 500);
+            }
         };
+        
         this.hasHitSound = false;
         requestAnimationFrame(animateStep);
     },
@@ -1162,23 +1157,22 @@ const App = {
     hideModal() { const modal = document.getElementById('modal-timers'); if (modal) modal.style.display = 'none'; }
 };
 
-// Инициализация при загрузке с улучшенной обработкой ошибок
+// Инициализация при загрузке
 window.onload = function() {
     console.log('Page loaded, starting game...');
     try {
-        // Небольшая задержка для гарантированной инициализации Telegram WebApp
         setTimeout(() => {
             App.init();
             console.log('Game started successfully!');
             
-            // Проверка SVG поддержки
-            const svgTest = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-            const svgSupported = !!svgTest.getAttribute;
-            console.log('SVG supported:', svgSupported);
-            
-            if (!svgSupported) {
-                console.warn('SVG might not be fully supported in this environment');
-            }
+            // Принудительная проверка отрисовки через 500ms
+            setTimeout(() => {
+                const arrows = document.querySelectorAll('.arrow-container');
+                console.log('Arrows found:', arrows.length);
+                if (arrows.length === 0) {
+                    console.warn('No arrows rendered, trying fallback...');
+                }
+            }, 500);
         }, 100);
     } catch (error) {
         console.error('Error starting game:', error);
@@ -1195,27 +1189,26 @@ window.onload = function() {
     }
 };
 
-// iOS/Safari специфичные исправления
-if (/iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream) {
-    console.log('iOS device detected, applying specific fixes');
+// Специфичные исправления для Telegram Mini Apps
+if (window.Telegram?.WebApp) {
+    console.log('Telegram WebApp detected');
+    // Принудительный reflow при полной загрузке
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
     
-    // Исправление для touch events в iOS
-    document.addEventListener('touchstart', function() {}, {passive: true});
-    
-    // Предотвращение масштабирования на игровом поле
-    document.addEventListener('touchmove', function(e) {
-        if (e.target.closest('#board')) {
-            e.preventDefault();
-        }
-    }, {passive: false});
-    
-    // Принудительный рефлоу при изменении ориентации
-    window.addEventListener('orientationchange', function() {
+    // Гарантия, что стрелки отрисуются
+    document.addEventListener('DOMContentLoaded', function() {
         setTimeout(() => {
-            if (App.curNum) {
-                App.loadLvl(App.curNum);
-            }
-        }, 300);
+            const style = document.createElement('style');
+            style.textContent = `
+                .arrow-container { 
+                    transform: translateZ(0); 
+                    -webkit-transform: translateZ(0);
+                    will-change: transform;
+                }
+            `;
+            document.head.appendChild(style);
+        }, 100);
     });
 }
 </script>
