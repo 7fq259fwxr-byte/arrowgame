@@ -21,16 +21,7 @@
         .coins-pill { background: white; padding: 8px 15px; border-radius: 25px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .coins-icon { color: var(--c-gold); font-weight: bold; }
 
-        .board-zone { 
-            flex: 1; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            padding: 20px; 
-            transition: 0.2s; 
-            width: 100%;
-            min-height: 400px; /* Гарантируем минимальную высоту */
-        }
+        .board-zone { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; transition: 0.2s; width: 100%; }
         
         /* ЭФФЕКТЫ */
         @keyframes shake {
@@ -44,20 +35,7 @@
             100% { box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-color: transparent; }
         }
 
-        #board { 
-            background: white; 
-            border-radius: 25px; 
-            position: relative; 
-            overflow: hidden; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-            border: 3px solid transparent; 
-            transition: background 0.3s;
-            width: 100%;
-            height: 100%;
-            max-width: 400px;
-            max-height: 400px;
-            display: block !important; /* Гарантируем отображение */
-        }
+        #board { background: white; border-radius: 25px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid transparent; transition: background 0.3s; }
         .board-zone.error-shake #board { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both, redFlash 0.5s ease-out; }
 
         .arrow-box { 
@@ -65,106 +43,34 @@
             cursor: pointer; 
             z-index: 2; 
             transition: opacity 0.1s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            transform-origin: center;
         }
         
-        /* ПРОСТЫЕ CSS СТРЕЛКИ, КОТОРЫЕ РАБОТАЮТ В TELEGRAM */
-        .arrow-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
+        /* СТРЕЛКИ КАК ЕДИНОЕ ЦЕЛОЕ */
+        .arrow-svg { 
+            width: 100%; 
+            height: 100%; 
+            overflow: visible; 
+            display: block;
+            transform: translateZ(0); /* Аппаратное ускорение для анимации */
         }
         
-        .arrow-line {
-            position: absolute;
-            background-color: var(--c-blue);
-            border-radius: 3px;
+        .p-line { 
+            fill: none; 
+            stroke: var(--c-blue); 
+            stroke-width: 5; 
+            stroke-linecap: round; 
+            stroke-linejoin: round; 
+            transition: stroke 0.2s;
         }
         
-        .arrow-head {
-            position: absolute;
-            width: 0;
-            height: 0;
-            border-style: solid;
+        .p-head { 
+            fill: var(--c-blue); 
+            transition: fill 0.2s;
         }
         
-        /* Направления стрелок */
-        .arrow-right .arrow-line {
-            width: 70%;
-            height: 6px;
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .arrow-right .arrow-head {
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            border-width: 8px 0 8px 12px;
-            border-color: transparent transparent transparent var(--c-blue);
-        }
-        
-        .arrow-left .arrow-line {
-            width: 70%;
-            height: 6px;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-        
-        .arrow-left .arrow-head {
-            left: 0;
-            top: 50%;
-            transform: translateY(-50%);
-            border-width: 8px 12px 8px 0;
-            border-color: transparent var(--c-blue) transparent transparent;
-        }
-        
-        .arrow-up .arrow-line {
-            width: 6px;
-            height: 70%;
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .arrow-up .arrow-head {
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 0 8px 12px 8px;
-            border-color: transparent transparent var(--c-blue) transparent;
-        }
-        
-        .arrow-down .arrow-line {
-            width: 6px;
-            height: 70%;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-        
-        .arrow-down .arrow-head {
-            bottom: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            border-width: 12px 8px 0 8px;
-            border-color: var(--c-blue) transparent transparent transparent;
-        }
-        
-        .arrow-box.error-arr .arrow-line {
-            background-color: var(--c-red) !important;
-        }
-        
-        .arrow-box.error-arr .arrow-head {
-            border-left-color: var(--c-red) !important;
-            border-right-color: var(--c-red) !important;
-            border-top-color: var(--c-red) !important;
-            border-bottom-color: var(--c-red) !important;
-        }
+        .arrow-box.error-arr .p-line { stroke: var(--c-red); }
+        .arrow-box.error-arr .p-head { fill: var(--c-red); }
 
         /* UI */
         #scr-home { align-items: center; justify-content: center; }
@@ -435,6 +341,64 @@ const Confetti = {
     }
 };
 
+// --- GEOMETRY ENGINE ---
+const Geo = {
+    getTrackForDirection(dir, cellSize) {
+        const half = cellSize / 2;
+        const long = cellSize * 10;
+        switch(dir) {
+            case 'R': return [[5, half], [long, half]];
+            case 'L': return [[cellSize-5, half], [-long, half]];
+            case 'U': return [[half, cellSize-5], [half, -long]];
+            case 'D': return [[half, 5], [half, long]];
+            default: return [[5, half], [long, half]];
+        }
+    },
+    getPointAtDist(points, dist) {
+        let currentDist = 0;
+        for(let i=0; i<points.length-1; i++) {
+            let dx = points[i+1][0]-points[i][0], dy = points[i+1][1]-points[i][1];
+            let segLen = Math.hypot(dx, dy);
+            if(currentDist + segLen >= dist) {
+                let ratio = (dist - currentDist) / segLen;
+                return { x: points[i][0] + dx * ratio, y: points[i][1] + dy * ratio, angle: Math.atan2(dy, dx) * 180 / Math.PI };
+            }
+            currentDist += segLen;
+        }
+        let last = points[points.length-1];
+        return {x: last[0], y: last[1], angle: 0};
+    },
+    getSegmentPath(points, distStart, distEnd) {
+        if(points.length === 2) {
+            const dx = points[1][0] - points[0][0];
+            const dy = points[1][1] - points[0][1];
+            const totalLen = Math.hypot(dx, dy);
+            const ratioStart = distStart / totalLen;
+            const ratioEnd = distEnd / totalLen;
+            
+            const x1 = points[0][0] + dx * ratioStart;
+            const y1 = points[0][1] + dy * ratioStart;
+            const x2 = points[0][0] + dx * ratioEnd;
+            const y2 = points[0][1] + dy * ratioEnd;
+            
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            return { d: `M ${x1} ${y1} L ${x2} ${y2}`, head: { x: x2, y: y2, angle: angle } };
+        }
+        
+        let d = "", currentDist = 0;
+        let pStart = this.getPointAtDist(points, Math.max(0, distStart));
+        d += `M ${pStart.x} ${pStart.y}`;
+        for(let i=0; i<points.length-1; i++) {
+            let segLen = Math.hypot(points[i+1][0]-points[i][0], points[i+1][1]-points[i][1]);
+            if(currentDist + segLen > distStart && currentDist + segLen < distEnd) d += ` L ${points[i+1][0]} ${points[i+1][1]}`;
+            currentDist += segLen;
+        }
+        let pEnd = this.getPointAtDist(points, distEnd);
+        d += ` L ${pEnd.x} ${pEnd.y}`;
+        return { d, head: pEnd };
+    }
+};
+
 // --- APP LOGIC ---
 const App = {
     state: { 
@@ -468,52 +432,96 @@ const App = {
     },
     audioCtx: null,
     busy: false,
+    isTelegram: false,
+    storageKey: 'arrows_pro_telegram',
 
-    init() {
+    async init() {
         console.log('App initializing...');
         
-        // Гарантия отрисовки поля
-        this.forceBoardRender();
+        // Определяем среду
+        this.isTelegram = !!(window.Telegram && Telegram.WebApp);
+        console.log('Is Telegram:', this.isTelegram);
         
         try {
-            const d = localStorage.getItem('arrows_pro_v19');
-            if (d) {
-                const saved = JSON.parse(d);
-                this.state = {...this.state, ...saved};
+            // Загружаем состояние
+            await this.loadState();
+            
+            // Инициализируем Telegram если есть
+            if (this.isTelegram) {
+                this.initTelegramWebApp();
             }
-        } catch (e) {
-            console.error('Error loading saved data:', e);
-        }
-        
-        this.initTelegramWebApp();
-        this.updateUI();
-        Confetti.init();
-        setInterval(() => this.tick(), 1000);
-        
-        const unlock = () => {
-            if(!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            if(this.audioCtx.state === 'suspended') this.audioCtx.resume();
-            window.removeEventListener('touchstart', unlock);
-            window.removeEventListener('click', unlock);
-        };
-        window.addEventListener('touchstart', unlock);
-        window.addEventListener('click', unlock);
-        console.log('App initialized successfully');
-        
-        // Гарантия отрисовки через 500ms
-        setTimeout(() => {
+            
             this.updateUI();
-        }, 500);
+            Confetti.init();
+            setInterval(() => this.tick(), 1000);
+            
+            const unlock = () => {
+                if(!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if(this.audioCtx.state === 'suspended') this.audioCtx.resume();
+                window.removeEventListener('touchstart', unlock);
+                window.removeEventListener('click', unlock);
+            };
+            window.addEventListener('touchstart', unlock);
+            window.addEventListener('click', unlock);
+            
+            console.log('App initialized successfully');
+            console.log('State:', this.state);
+            
+        } catch (e) {
+            console.error('Error initializing app:', e);
+        }
     },
 
-    // Принудительная отрисовка поля
-    forceBoardRender() {
-        const board = document.getElementById('board');
-        if (board) {
-            board.style.display = 'block';
-            board.style.visibility = 'visible';
-            board.style.opacity = '1';
+    // Загрузка состояния
+    async loadState() {
+        try {
+            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage) {
+                // Используем Cloud Storage Telegram
+                const keys = await Telegram.WebApp.CloudStorage.getKeys();
+                console.log('Cloud Storage keys:', keys);
+                
+                if (keys && keys.includes(this.storageKey)) {
+                    const data = await Telegram.WebApp.CloudStorage.getItem(this.storageKey);
+                    if (data) {
+                        const saved = JSON.parse(data);
+                        this.state = {...this.state, ...saved};
+                        console.log('Loaded from Telegram Cloud Storage');
+                    }
+                }
+            } else {
+                // Используем localStorage
+                const d = localStorage.getItem(this.storageKey);
+                if (d) {
+                    const saved = JSON.parse(d);
+                    this.state = {...this.state, ...saved};
+                    console.log('Loaded from localStorage');
+                }
+            }
+        } catch (e) {
+            console.error('Error loading state:', e);
         }
+    },
+
+    // Сохранение состояния
+    async saveState() {
+        try {
+            if (this.isTelegram && window.Telegram?.WebApp?.CloudStorage) {
+                // Сохраняем в Cloud Storage Telegram
+                await Telegram.WebApp.CloudStorage.setItem(this.storageKey, JSON.stringify(this.state));
+                console.log('Saved to Telegram Cloud Storage');
+            } else {
+                // Сохраняем в localStorage
+                localStorage.setItem(this.storageKey, JSON.stringify(this.state));
+                console.log('Saved to localStorage');
+            }
+        } catch (e) {
+            console.error('Error saving state:', e);
+        }
+    },
+
+    // Алиас для совместимости
+    save() { 
+        this.saveState();
     },
 
     initTelegramWebApp() {
@@ -537,8 +545,6 @@ const App = {
                 console.error('Error initializing Telegram WebApp:', e);
                 this.showTelegramConnectionButton();
             }
-        } else {
-            this.showTelegramConnectionButton();
         }
     },
 
@@ -569,7 +575,7 @@ const App = {
                     this.state.skins = data.user.skins || ['default'];
                     this.state.selectedSkin = data.user.selected_skin || 'default';
                     this.updateUI();
-                    this.save();
+                    this.saveState();
                     
                     document.getElementById('tg-info').style.display = 'block';
                     document.getElementById('nickname-display').innerText = this.state.tgUsername;
@@ -686,17 +692,13 @@ const App = {
         this.state.coins = 100;
         this.state.maxLvl = 5;
         this.updateUI();
-        this.save();
+        this.saveState();
         document.getElementById('tg-info').style.display = 'block';
         document.getElementById('nickname-display').innerText = this.state.tgUsername;
         document.getElementById('btn-connect-tg').style.display = 'none';
         document.getElementById('tg-user-id').innerText = `ID: ${this.state.tgUserId}`;
         document.getElementById('tg-connected').innerText = 'Connected (Demo Mode)';
         alert('Connected to Telegram (demo mode)! You can now use all features.');
-    },
-
-    save() { 
-        try { localStorage.setItem('arrows_pro_v19', JSON.stringify(this.state)); } catch (e) {}
     },
 
     updateUI() {
@@ -738,16 +740,6 @@ const App = {
         
         const boardZone = document.querySelector('.board-zone');
         if (boardZone) boardZone.classList.remove('error-shake');
-        
-        // Гарантия отрисовки поля при переходе в игру
-        if (scr === 'game') {
-            setTimeout(() => {
-                this.forceBoardRender();
-                if (this.curNum) {
-                    this.loadLvl(this.curNum);
-                }
-            }, 50);
-        }
     },
 
     showStatsScreen() {
@@ -809,10 +801,10 @@ const App = {
         if(this.state.lives <= 0) return this.showTimers();
         this.curNum = n; 
         this.nav('game'); 
-        // Гарантия загрузки уровня
+        // Используем setTimeout для гарантии что DOM обновился
         setTimeout(() => {
             this.loadLvl(n);
-        }, 100);
+        }, 50);
     },
 
     nextLvl() { this.play(this.curNum + 1); },
@@ -834,7 +826,7 @@ const App = {
     },
 
     loadLvl(n) {
-        console.log(`Loading level ${n}`);
+        console.log(`Loading level ${n}, isTelegram: ${this.isTelegram}`);
         
         const b = document.getElementById('board');
         if (!b) {
@@ -842,26 +834,27 @@ const App = {
             return;
         }
         
-        // Гарантия что поле видимо
-        b.style.display = 'block';
-        b.style.visibility = 'visible';
-        b.style.opacity = '1';
-        
+        // Очищаем доску
         b.innerHTML = '';
+        
+        // Устанавливаем размер доски
         this.boardSize = this.getBoardSizeForLevel(n);
         
-        // Принудительная отрисовка поля
-        this.forceBoardSize(b);
-        
+        // Определяем размеры
         const boardContainer = document.querySelector('.board-zone');
         if (!boardContainer) return;
         
-        // Устанавливаем размер поля
-        const containerWidth = Math.min(boardContainer.offsetWidth, boardContainer.offsetHeight);
+        let containerWidth = Math.min(boardContainer.offsetWidth, boardContainer.offsetHeight);
+        if (containerWidth === 0) {
+            containerWidth = Math.min(window.innerWidth, window.innerHeight) - 40;
+        }
+
         const boardPixelSize = Math.min(containerWidth - 40, 400);
         
         b.style.width = boardPixelSize + 'px';
         b.style.height = boardPixelSize + 'px';
+        b.style.display = 'block';
+        b.style.visibility = 'visible';
         
         // Добавляем сетку
         this.addGridLines(b, boardPixelSize);
@@ -869,20 +862,25 @@ const App = {
         const cellSize = boardPixelSize / this.boardSize;
         const arrowSize = Math.min(cellSize * 0.85, this.getArrowSizeForLevel(n, this.boardSize));
         
-        // Генерируем уровень
+        // Генерируем уровень если нужно
         if(!this.state.savedLevels[n]) {
             this.state.savedLevels[n] = this.generate(n, this.boardSize);
+            this.saveState();
         }
         
         const data = this.state.savedLevels[n];
         console.log(`Level ${n} has ${data.length} arrows`);
         
-        // Сбрасываем состояние solved для уровня 1 в Telegram
-        if (n === 1 && window.Telegram?.WebApp) {
-            data.forEach(a => a.solved = false);
-        }
+        // Для Telegram: всегда сбрасываем solved для текущего уровня при загрузке
+        // Но сохраняем прогресс в savedLevels
+        data.forEach(a => {
+            // Если уровень не решен, сбрасываем solved
+            if (!data.every(x => x.solved)) {
+                a.solved = false;
+            }
+        });
         
-        let arrowsCreated = 0;
+        // Создаем стрелки
         data.forEach(a => {
             if(a.solved) return;
             
@@ -892,75 +890,43 @@ const App = {
             wrap.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px'; 
             wrap.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
             
-            // Добавляем класс направления
-            let directionClass = '';
-            switch(a.dir) {
-                case 'R': directionClass = 'arrow-right'; break;
-                case 'L': directionClass = 'arrow-left'; break;
-                case 'U': directionClass = 'arrow-up'; break;
-                case 'D': directionClass = 'arrow-down'; break;
-            }
-            wrap.classList.add(directionClass);
+            // Создаем SVG стрелку
+            const track = Geo.getTrackForDirection(a.dir, arrowSize);
+            const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
             
-            // Создаем внутренний контейнер для стрелки
-            const inner = document.createElement('div');
-            inner.className = 'arrow-inner';
+            wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
+                <path class="p-line" d="${initialPath.d}" />
+                <polygon class="p-head" points="-6,-6 6,0 -6,6" transform="translate(${initialPath.head.x},${initialPath.head.y}) rotate(${initialPath.head.angle})"/>
+            </svg>`;
             
-            // Линия стрелки
-            const line = document.createElement('div');
-            line.className = 'arrow-line';
-            
-            // Голова стрелки
-            const head = document.createElement('div');
-            head.className = 'arrow-head';
-            
-            inner.appendChild(line);
-            inner.appendChild(head);
-            wrap.appendChild(inner);
-            
-            // Сохраняем ссылки на элементы
-            a.element = wrap;
-            a.lineElement = line;
-            a.headElement = head;
-            
-            // Обработчик клика
             wrap.onclick = () => this.move(a, wrap, arrowSize);
-            
-            // Для тач-устройств
-            wrap.addEventListener('touchstart', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                this.move(a, wrap, arrowSize);
-            }, {passive: false});
-            
             b.appendChild(wrap);
-            arrowsCreated++;
         });
         
-        console.log(`Created ${arrowsCreated} arrows for level ${n}`);
-        
-        // Гарантия отрисовки
-        setTimeout(() => {
-            const arrows = b.querySelectorAll('.arrow-box');
-            console.log(`Actually rendered ${arrows.length} arrows`);
-            
-            // Если стрелок нет, перегенерируем уровень
-            if (arrows.length === 0 && n === 1) {
-                console.log('No arrows rendered, regenerating level...');
-                delete this.state.savedLevels[n];
-                setTimeout(() => this.loadLvl(n), 100);
-            }
-        }, 100);
+        // Для Telegram: дополнительная проверка отрисовки
+        if (this.isTelegram) {
+            setTimeout(() => {
+                const arrows = b.querySelectorAll('.arrow-box');
+                console.log(`Actually rendered ${arrows.length} arrows for level ${n}`);
+                
+                if (arrows.length === 0 && n === 1) {
+                    console.log('No arrows rendered in Telegram, forcing regeneration...');
+                    this.forceRegenerateLevel1();
+                }
+            }, 100);
+        }
     },
 
-    // Принудительная установка размера поля
-    forceBoardSize(board) {
-        board.style.width = '300px';
-        board.style.height = '300px';
-        board.style.minWidth = '200px';
-        board.style.minHeight = '200px';
-        board.style.maxWidth = '400px';
-        board.style.maxHeight = '400px';
+    // Принудительная перегенерация первого уровня для Telegram
+    forceRegenerateLevel1() {
+        delete this.state.savedLevels[1];
+        this.state.savedLevels[1] = this.generate(1, this.getBoardSizeForLevel(1));
+        this.saveState();
+        
+        // Перезагружаем уровень
+        setTimeout(() => {
+            this.loadLvl(1);
+        }, 50);
     },
 
     addGridLines(board, boardSize) {
@@ -1067,43 +1033,69 @@ const App = {
         const data = this.state.savedLevels[this.curNum];
         let hit = data.find(o => !o.solved && o.id !== a.id && this.checkCollision(a, o, this.boardSize));
         
+        const svg = el.querySelector('.arrow-svg');
+        const line = el.querySelector('.p-line');
+        const head = el.querySelector('.p-head');
+        const track = Geo.getTrackForDirection(a.dir, arrowSize);
+        const duration = hit ? 300 : 400;
+        
         if(!hit) { 
             this.playAudio('win'); 
             this.vibrate('win'); 
         }
         
-        // Простая анимация
-        const duration = hit ? 300 : 400;
-        const startTime = Date.now();
-        
-        const animate = () => {
-            const elapsed = Date.now() - startTime;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                this.busy = false;
-                if (hit) {
-                    // Столкновение
+        let startTime = null;
+        const animateStep = (time) => {
+            if (!startTime) startTime = time;
+            let p = (time - startTime) / duration;
+            if (p > 1) p = 1;
+
+            let distFactor;
+            if (hit) {
+                distFactor = p * arrowSize * 0.5;
+                if(p >= 0.4 && !this.hasHitSound) {
+                    this.hasHitSound = true;
+                    this.playAudio('err'); 
+                    this.vibrate('err');
                     el.classList.add('error-arr');
                     document.querySelector('.board-zone').classList.add('error-shake');
                     setTimeout(() => {
                         document.querySelector('.board-zone').classList.remove('error-shake');
                         el.classList.remove('error-arr');
                     }, 500);
-                    
-                    if (progress >= 0.5) {
-                        this.playAudio('err');
-                        this.vibrate('err');
-                    }
-                    
+                }
+            } else {
+                distFactor = p * arrowSize * 10;
+            }
+
+            const currentHeadDist = arrowSize * 0.4 + distFactor;
+            const currentTailDist = currentHeadDist - arrowSize * 0.4;
+            const seg = Geo.getSegmentPath(track, currentTailDist, currentHeadDist);
+            
+            line.setAttribute('d', seg.d);
+            head.setAttribute('transform', `translate(${seg.head.x},${seg.head.y}) rotate(${seg.head.angle})`);
+            
+            if (p < 1) {
+                requestAnimationFrame(animateStep);
+            } else {
+                this.busy = false;
+                this.hasHitSound = false;
+                
+                if (hit) {
+                    // Возвращаем стрелку в исходное положение
+                    const resetSeg = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
+                    line.setAttribute('d', resetSeg.d);
+                    head.setAttribute('transform', `translate(${resetSeg.head.x},${resetSeg.head.y}) rotate(${resetSeg.head.angle})`);
                     this.loseLife();
                 } else {
-                    // Успех
+                    // Стрелка улетает
                     el.style.opacity = '0';
                     a.solved = true;
                     
+                    // Сохраняем прогресс
+                    this.saveState();
+                    
+                    // Проверяем завершение уровня
                     if(data.every(x => x.solved)) {
                         setTimeout(() => this.showWin(), 300);
                     }
@@ -1111,14 +1103,18 @@ const App = {
             }
         };
         
-        requestAnimationFrame(animate);
+        this.hasHitSound = false;
+        requestAnimationFrame(animateStep);
     },
 
     showWin() {
         const coinsEarned = 20;
         this.state.coins += coinsEarned;
         if(this.curNum === this.state.maxLvl) this.state.maxLvl++;
-        this.save();
+        
+        // Сохраняем прогресс
+        this.saveState();
+        
         this.updateUI();
         
         if (this.state.tgConnected) {
@@ -1166,7 +1162,7 @@ const App = {
         if(this.state.lives > 0) {
             this.state.lives--;
             this.state.timers.push(Date.now() + 1200000);
-            this.save(); 
+            this.saveState();
             this.updateUI(); 
             if(this.state.lives === 0) setTimeout(() => this.nav('home'), 500);
         }
@@ -1179,7 +1175,10 @@ const App = {
             if(now >= t) { this.state.lives = Math.min(3, this.state.lives + 1); return false; }
             return true;
         });
-        if(prevLives !== this.state.lives) { this.save(); this.updateUI(); }
+        if(prevLives !== this.state.lives) { 
+            this.saveState();
+            this.updateUI(); 
+        }
         if(document.getElementById('modal-timers').style.display === 'flex') this.renderTimersList();
     },
 
@@ -1216,46 +1215,65 @@ const App = {
         }
     },
 
-    toggle(k) { this.state[k] = !this.state[k]; this.save(); this.updateUI(); },
-    setLang(l) { this.state.lang = l; this.save(); this.updateUI(); },
-    showTimers() { const modal = document.getElementById('modal-timers'); if (modal) { modal.style.display = 'flex'; this.renderTimersList(); } },
-    hideModal() { const modal = document.getElementById('modal-timers'); if (modal) modal.style.display = 'none'; }
+    toggle(k) { 
+        this.state[k] = !this.state[k]; 
+        this.saveState(); 
+        this.updateUI(); 
+    },
+    
+    setLang(l) { 
+        this.state.lang = l; 
+        this.saveState(); 
+        this.updateUI(); 
+    },
+    
+    showTimers() { 
+        const modal = document.getElementById('modal-timers'); 
+        if (modal) { 
+            modal.style.display = 'flex'; 
+            this.renderTimersList(); 
+        } 
+    },
+    
+    hideModal() { 
+        const modal = document.getElementById('modal-timers'); 
+        if (modal) modal.style.display = 'none'; 
+    }
 };
 
-// Инициализация с улучшенной обработкой Telegram
+// Инициализация при загрузке
 window.onload = function() {
     console.log('Page loaded, starting game...');
     
-    // Проверяем, в Telegram ли мы
-    const isTelegram = !!window.Telegram?.WebApp;
-    console.log('Is Telegram environment:', isTelegram);
+    // Проверяем Telegram
+    const isTelegram = !!(window.Telegram && Telegram.WebApp);
+    console.log('Telegram detected:', isTelegram);
     
     try {
-        // Инициализируем Telegram WebApp
+        // Инициализируем Telegram WebApp если есть
         if (isTelegram) {
             Telegram.WebApp.ready();
             Telegram.WebApp.expand();
             
-            // Принудительная перегенерация первого уровня при загрузке в Telegram
-            setTimeout(() => {
-                if (App.state.maxLvl === 1) {
-                    delete App.state.savedLevels[1];
-                    console.log('Forced level 1 regeneration for Telegram');
+            // Сохраняем флаг что мы в Telegram
+            App.isTelegram = true;
+            
+            // Для Telegram Mini Apps добавляем обработку видимости
+            document.addEventListener('visibilitychange', function() {
+                if (document.visibilityState === 'visible') {
+                    console.log('App became visible, saving state...');
+                    // Сохраняем состояние при возвращении
+                    setTimeout(() => {
+                        App.saveState();
+                    }, 100);
                 }
-            }, 100);
+            });
         }
         
-        // Инициализация игры
+        // Инициализируем игру
         setTimeout(() => {
             App.init();
             console.log('Game started successfully!');
-            
-            // Проверяем отрисовку через 1 секунду
-            setTimeout(() => {
-                const board = document.getElementById('board');
-                const arrows = document.querySelectorAll('.arrow-box');
-                console.log(`Board visible: ${board && board.offsetWidth > 0}, Arrows: ${arrows.length}`);
-            }, 1000);
         }, 100);
         
     } catch (error) {
@@ -1265,7 +1283,7 @@ window.onload = function() {
             app.innerHTML = `
                 <div style="padding: 20px; text-align: center;">
                     <h1 style="color: var(--c-red);">Error Loading Game</h1>
-                    <p>${error.message}</p>
+                    <p>Please check console for details.</p>
                     <button onclick="location.reload()" style="padding:10px 20px; background:var(--c-blue); color:white; border:none; border-radius:10px; margin-top:20px;">Reload</button>
                 </div>
             `;
@@ -1273,25 +1291,17 @@ window.onload = function() {
     }
 };
 
-// Telegram-специфичные фиксы
-if (window.Telegram?.WebApp) {
-    console.log('Telegram WebApp detected, applying fixes');
-    
-    // Перехват событий видимости
-    document.addEventListener('visibilitychange', function() {
-        console.log('Visibility changed:', document.visibilityState);
-        if (document.visibilityState === 'visible') {
-            // При возвращении на видимую страницу перезагружаем UI
-            setTimeout(() => {
-                App.updateUI();
-                if (App.curNum === 1) {
-                    // Перегенерируем первый уровень
-                    delete App.state.savedLevels[1];
-                }
-            }, 100);
-        }
-    });
-}
+// Автосохранение перед закрытием
+window.addEventListener('beforeunload', function() {
+    console.log('Saving before unload...');
+    App.saveState();
+});
+
+// Для iOS Safari
+window.addEventListener('pagehide', function() {
+    console.log('Saving on page hide...');
+    App.saveState();
+});
 </script>
 </body>
 </html>
