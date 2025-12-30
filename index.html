@@ -301,6 +301,85 @@
 // API Configuration
 const API_BASE_URL = 'https://malollas.pythonanywhere.com/api'; 
 
+// Мультиязычные тексты для игры
+const GAME_TEXTS = {
+    ru: {
+        level: "УРОВЕНЬ",
+        goal: "🎯 Цель игры:",
+        goalDesc: "Очисти поле от всех стрелок, нажимая на них в правильном порядке!",
+        stats: "Статистика",
+        shop: "Магазин",
+        totalLevels: "Пройдено уровней:",
+        totalCoins: "Всего монет:",
+        globalRank: "Глобальный ранг:",
+        leaderboard: "Таблица лидеров",
+        noPlayers: "Нет игроков. Будьте первым!",
+        you: "(Вы)",
+        victory: "Победа!",
+        menu: "Меню",
+        next: "Следующий",
+        sound: "Звук",
+        vibration: "Вибрация",
+        language: "Язык",
+        connected: "Подключен к Telegram",
+        notConnected: "Не подключен",
+        connect: "Подключить Telegram",
+        recovery: "Восстановление",
+        fullHP: "Полные жизни",
+        heart: "Сердце"
+    },
+    en: {
+        level: "LEVEL",
+        goal: "🎯 Game Goal:",
+        goalDesc: "Clear the field of all arrows by clicking them in the correct order!",
+        stats: "Statistics",
+        shop: "Shop",
+        totalLevels: "Total Levels Passed:",
+        totalCoins: "Total Coins:",
+        globalRank: "Global Rank:",
+        leaderboard: "Leaderboard",
+        noPlayers: "No players. Be the first!",
+        you: "(You)",
+        victory: "Victory!",
+        menu: "Menu",
+        next: "Next",
+        sound: "Sound",
+        vibration: "Vibration",
+        language: "Language",
+        connected: "Connected to Telegram",
+        notConnected: "Not connected",
+        connect: "Connect Telegram",
+        recovery: "Recovery",
+        fullHP: "Full HP",
+        heart: "Heart"
+    },
+    zh: {
+        level: "关卡",
+        goal: "🎯 游戏目标:",
+        goalDesc: "通过按正确顺序点击所有箭头来清除场地！",
+        stats: "统计",
+        shop: "商店",
+        totalLevels: "通过等级:",
+        totalCoins: "总金币:",
+        globalRank: "全球排名:",
+        leaderboard: "排行榜",
+        noPlayers: "没有玩家。成为第一个！",
+        you: "(您)",
+        victory: "胜利！",
+        menu: "菜单",
+        next: "下一个",
+        sound: "声音",
+        vibration: "振动",
+        language: "语言",
+        connected: "已连接到Telegram",
+        notConnected: "未连接",
+        connect: "连接Telegram",
+        recovery: "恢复",
+        fullHP: "满生命",
+        heart: "心"
+    }
+};
+
 // --- CONFETTI ENGINE ---
 const Confetti = {
     canvas: null, ctx: null, w: 0, h: 0, particles: [], active: false,
@@ -436,11 +515,6 @@ const App = {
     },
     curNum: 1,
     boardSize: 5,
-    trans: {
-        ru: { lvl: "УРОВЕНЬ" },
-        en: { lvl: "LEVEL" },
-        zh: { lvl: "关卡" }
-    },
     praise: {
         ru: ["Отлично!", "Супер!", "Победа!", "Гениально!", "Класс!", "Ура!", "Великолепно!"],
         en: ["Excellent!", "Amazing!", "Victory!", "Genius!", "Great!", "Wow!", "Fantastic!"],
@@ -563,6 +637,7 @@ const App = {
     showTelegramConnectionButton() {
         document.getElementById('btn-connect-tg').style.display = 'block';
         document.getElementById('tg-info').style.display = 'none';
+        document.getElementById('btn-connect-tg').innerText = GAME_TEXTS[this.state.lang].connect;
     },
 
     async loadUserData() {
@@ -593,6 +668,7 @@ const App = {
                     document.getElementById('nickname-display').innerText = this.state.tgUsername;
                     document.getElementById('btn-connect-tg').style.display = 'none';
                     document.getElementById('tg-user-id').innerText = `ID: ${this.state.tgUserId}`;
+                    document.getElementById('tg-connected').innerText = GAME_TEXTS[this.state.lang].connected;
                 } else {
                     if (data.error === 'User not found') this.showTelegramConnectionButton();
                 }
@@ -626,6 +702,33 @@ const App = {
                 }
             }
         } catch (error) { console.error('Error updating score:', error); }
+    },
+
+    async loadUserRank() {
+        if (!this.state.tgUserId) return;
+        try {
+            const response = await fetch(`${API_BASE_URL}/get_user_rank`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.state.tgUserId
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success) {
+                    return {
+                        rank: data.rank,
+                        total_players: data.total_players
+                    };
+                }
+            }
+            return null;
+        } catch (error) {
+            console.error('Error loading user rank:', error);
+            return null;
+        }
     },
 
     async loadLeaderboard() {
@@ -679,7 +782,7 @@ const App = {
         list.innerHTML = '';
         
         if (!leaderboard || leaderboard.length === 0) {
-            list.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">Нет игроков. Будьте первым!</div>';
+            list.innerHTML = `<div style="text-align: center; padding: 20px; color: #666;">${GAME_TEXTS[this.state.lang].noPlayers}</div>`;
             return;
         }
         
@@ -711,12 +814,12 @@ const App = {
             name.innerText = displayName;
             
             if (isCurrentUser) {
-                name.innerHTML += ' <span style="color: var(--c-blue); font-size: 0.8em;">(Вы)</span>';
+                name.innerHTML += ` <span style="color: var(--c-blue); font-size: 0.8em;">${GAME_TEXTS[this.state.lang].you}</span>`;
             }
             
             const levels = document.createElement('div');
             levels.className = 'leader-levels';
-            levels.innerText = `${player.score} Уровней`;
+            levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
             
             row.appendChild(rank);
             row.appendChild(name);
@@ -738,19 +841,19 @@ const App = {
         document.getElementById('nickname-display').innerText = this.state.tgUsername;
         document.getElementById('btn-connect-tg').style.display = 'none';
         document.getElementById('tg-user-id').innerText = `ID: ${this.state.tgUserId}`;
-        document.getElementById('tg-connected').innerText = 'Connected (Demo Mode)';
+        document.getElementById('tg-connected').innerText = GAME_TEXTS[this.state.lang].connected;
         alert('Connected to Telegram (demo mode)! You can now use all features.');
     },
 
     updateUI() {
-        const t = this.trans[this.state.lang];
+        const t = GAME_TEXTS[this.state.lang];
         const livesCount = document.getElementById('lives-count');
         const coinsCount = document.getElementById('coins-count');
         const lvlLabel = document.getElementById('lvl-label');
         
         if (livesCount) livesCount.innerText = this.state.lives;
         if (coinsCount) coinsCount.innerText = this.state.coins;
-        if (lvlLabel) lvlLabel.innerText = `${t.lvl} ${this.state.maxLvl}`;
+        if (lvlLabel) lvlLabel.innerText = `${t.level} ${this.state.maxLvl}`;
         
         const togSound = document.getElementById('tog-sound');
         const togVib = document.getElementById('tog-vib');
@@ -761,6 +864,27 @@ const App = {
             if (b.id === 'l-'+this.state.lang) b.classList.add('active');
             else b.classList.remove('active');
         });
+        
+        // Обновляем тексты кнопок
+        document.querySelectorAll('button').forEach(btn => {
+            const text = btn.innerText;
+            if (text === 'Stats' || text === 'Статистика' || text === '统计') {
+                btn.innerText = t.stats;
+            } else if (text === 'Shop' || text === 'Магазин' || text === '商店') {
+                btn.innerText = t.shop;
+            } else if (text === 'Connect Telegram' || text === 'Подключить Telegram' || text === '连接Telegram') {
+                btn.innerText = t.connect;
+            }
+        });
+        
+        // Обновляем описание цели игры
+        const goalDiv = document.querySelector('#scr-home div[style*="max-width: 300px"]');
+        if (goalDiv) {
+            const goalTitle = goalDiv.querySelector('div[style*="font-weight: bold"]');
+            const goalDesc = goalDiv.querySelector('div[style*="color: #666"]');
+            if (goalTitle) goalTitle.innerText = t.goal;
+            if (goalDesc) goalDesc.innerText = t.goalDesc;
+        }
     },
 
     nav(scr) {
@@ -783,25 +907,48 @@ const App = {
         if (boardZone) boardZone.classList.remove('error-shake');
     },
 
-    showStatsScreen() {
+    async showStatsScreen() {
         console.log('Показываем экран статистики...');
         console.log('Текущий пользователь ID:', this.state.tgUserId);
         console.log('Текущий пользователь подключен:', this.state.tgConnected);
         
+        const t = GAME_TEXTS[this.state.lang];
         const statsLoading = document.getElementById('stats-loading');
         const statsCard = document.getElementById('stats-card');
         if (statsLoading) statsLoading.style.display = 'flex';
         if (statsCard) statsCard.style.display = 'none';
         
-        setTimeout(() => {
+        // Обновляем заголовки
+        const statsTitle = document.querySelector('#scr-stats h2');
+        if (statsTitle) statsTitle.innerText = t.stats;
+        const leaderboardTitle = document.querySelector('#scr-stats h3');
+        if (leaderboardTitle) leaderboardTitle.innerText = t.leaderboard;
+        
+        setTimeout(async () => {
             console.log('Загружаем статистику для пользователя...');
             const statsLevels = document.getElementById('stats-levels');
             const statsCoins = document.getElementById('stats-coins');
             const statsRank = document.getElementById('stats-rank');
+            const statLabels = document.querySelectorAll('.stat-label');
+            
+            if (statLabels[0]) statLabels[0].innerText = t.totalLevels;
+            if (statLabels[1]) statLabels[1].innerText = t.totalCoins;
+            if (statLabels[2]) statLabels[2].innerText = t.globalRank;
             
             if (statsLevels) statsLevels.innerText = this.state.maxLvl - 1;
             if (statsCoins) statsCoins.innerText = this.state.coins;
-            if (statsRank) statsRank.innerText = this.state.tgConnected ? '#?' : 'Not ranked';
+            
+            // Загружаем глобальный ранг
+            if (this.state.tgConnected && this.state.tgUserId) {
+                const rankData = await this.loadUserRank();
+                if (rankData && rankData.rank > 0) {
+                    if (statsRank) statsRank.innerText = `#${rankData.rank} (из ${rankData.total_players})`;
+                } else {
+                    if (statsRank) statsRank.innerText = 'Не в рейтинге';
+                }
+            } else {
+                if (statsRank) statsRank.innerText = 'Not ranked';
+            }
             
             if (statsLoading) statsLoading.style.display = 'none';
             if (statsCard) statsCard.style.display = 'block';
@@ -1130,6 +1277,13 @@ const App = {
         title.classList.remove('show');
         document.getElementById('coins-earned-amount').innerText = coinsEarned;
         
+        // Обновляем тексты кнопок на экране победы
+        const t = GAME_TEXTS[this.state.lang];
+        const btnMenu = document.getElementById('btn-win-menu');
+        const btnNext = document.getElementById('btn-win-next');
+        if (btnMenu) btnMenu.innerText = t.menu;
+        if (btnNext) btnNext.innerText = t.next;
+        
         this.nav('win');
         setTimeout(() => {
             this.playAudio('victory');
@@ -1189,7 +1343,7 @@ const App = {
         list.innerHTML = '';
         const now = Date.now(); 
         if(this.state.timers.length === 0) { 
-            list.innerHTML = '<div style="padding:10px; color:#aaa;">Full HP</div>';
+            list.innerHTML = `<div style="padding:10px; color:#aaa;">${GAME_TEXTS[this.state.lang].fullHP}</div>`;
             return; 
         }
         this.state.timers.forEach((end, i) => {
@@ -1198,7 +1352,7 @@ const App = {
             const ss = (diff % 60).toString().padStart(2, '0');
             const div = document.createElement('div'); 
             div.className = 'timer-row';
-            div.innerHTML = `<span>Heart ${i+1}</span><span>${mm}:${ss}</span>`;
+            div.innerHTML = `<span>${GAME_TEXTS[this.state.lang].heart} ${i+1}</span><span>${mm}:${ss}</span>`;
             list.appendChild(div);
         });
     },
@@ -1232,6 +1386,8 @@ const App = {
         const modal = document.getElementById('modal-timers'); 
         if (modal) { 
             modal.style.display = 'flex'; 
+            const title = modal.querySelector('h3');
+            if (title) title.innerText = GAME_TEXTS[this.state.lang].recovery;
             this.renderTimersList(); 
         } 
     },
