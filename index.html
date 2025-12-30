@@ -11,7 +11,7 @@
         body { background: var(--c-bg); font-family: -apple-system, sans-serif; overflow: hidden; height: 100vh; display: flex; justify-content: center; }
         #app { width: 100%; max-width: 500px; height: 100%; position: relative; display: flex; flex-direction: column; }
         
-        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--c-bg); z-index: 10; }
+        .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--c-bg); z-index: 10; width: 100%; height: 100%; }
         .screen.active { display: flex; }
 
         .top-ui { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; min-height: 70px; z-index: 100; }
@@ -21,7 +21,7 @@
         .coins-pill { background: white; padding: 8px 15px; border-radius: 25px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .coins-icon { color: var(--c-gold); font-weight: bold; }
 
-        .board-zone { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; transition: 0.2s; width: 100%; }
+        .board-zone { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; transition: 0.2s; width: 100%; position: relative; }
         
         /* ЭФФЕКТЫ */
         @keyframes shake {
@@ -35,7 +35,7 @@
             100% { box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-color: transparent; }
         }
 
-        #board { background: white; border-radius: 25px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid transparent; transition: background 0.3s; }
+        #board { background: white; border-radius: 25px; position: relative; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 3px solid transparent; transition: background 0.3s; margin: auto; }
         .board-zone.error-shake #board { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both, redFlash 0.5s ease-out; }
 
         .arrow-box { position: absolute; cursor: pointer; z-index: 2; transition: opacity 0.1s; }
@@ -154,8 +154,8 @@
             <button onclick="App.nav('stats')" style="padding:10px 20px; background:var(--c-blue); color:white; border:none; border-radius:10px; font-weight:bold;">Stats</button>
             <button onclick="App.nav('shop')" style="padding:10px 20px; background:var(--c-gold); color:white; border:none; border-radius:10px; font-weight:bold;">Shop</button>
         </div>
-
-        <div class="version-label">v1.0.1</div>
+        
+        <div class="version-label">v1.0.2</div>
     </div>
 
     <div id="scr-game" class="screen">
@@ -721,10 +721,12 @@ const App = {
         if(this.state.lives <= 0) return this.showTimers();
         this.curNum = n; 
         this.nav('game'); 
-        // Увеличенная задержка для Telegram
-        setTimeout(() => {
-            this.loadLvl(n);
-        }, 100);
+        
+        // СТРАТЕГИЯ ТРОЙНОГО РЕНДЕРА:
+        // Пытаемся нарисовать 3 раза, чтобы попасть в тайминг открытия Telegram
+        setTimeout(() => this.loadLvl(n), 0);
+        setTimeout(() => this.loadLvl(n), 50);
+        setTimeout(() => this.loadLvl(n), 300);
     },
 
     nextLvl() { this.play(this.curNum + 1); },
@@ -748,52 +750,75 @@ const App = {
     loadLvl(n) {
         const b = document.getElementById('board');
         if (!b) return;
-        b.innerHTML = '';
-        this.boardSize = this.getBoardSizeForLevel(n);
+        
         const boardContainer = document.querySelector('.board-zone');
         if (!boardContainer) return;
         
-        // Улучшенный расчет ширины для Telegram WebApp
+        // СБРОС: Сначала очищаем, чтобы не рисовать поверх старого при повторном вызове
+        b.innerHTML = '';
+        
+        this.boardSize = this.getBoardSizeForLevel(n);
+
+        // --- АГРЕССИВНЫЙ РАСЧЕТ РАЗМЕРОВ ---
         let containerWidth = boardContainer.clientWidth;
         
-        // Если ширина 0 (баг рендеринга), используем ширину окна
-        if (!containerWidth) {
+        // 1. Если ширина 0 или очень мала - берем ширину окна
+        if (!containerWidth || containerWidth < 50) {
             containerWidth = window.innerWidth - 40;
         }
         
-        // Жесткая подстраховка: если все равно слишком мало, ставим фикс
-        if (containerWidth < 200) containerWidth = 300;
+        // 2. Если все еще ерунда - ставим жесткий минимум
+        if (containerWidth < 200) containerWidth = 300; 
 
-        const boardPixelSize = Math.min(containerWidth - 40, 400);
-        
+        // 3. Записываем размеры в пикселях явно
+        const boardPixelSize = Math.min(containerWidth - 20, 400); // Чуть меньше отступов
         b.style.width = boardPixelSize + 'px';
         b.style.height = boardPixelSize + 'px';
         
+        // Проверка: если размеры некорректны, прерываем и пробуем позже
+        if (boardPixelSize <= 0 || isNaN(boardPixelSize)) {
+            console.log('Размер все еще плохой, ретрай...');
+            setTimeout(() => this.loadLvl(n), 100);
+            return;
+        }
+
         this.addGridLines(b, boardPixelSize);
+        
         const cellSize = boardPixelSize / this.boardSize;
         const arrowSize = Math.min(cellSize * 0.85, this.getArrowSizeForLevel(n, this.boardSize));
+        
         if(!this.state.savedLevels[n]) {
             this.state.savedLevels[n] = this.generate(n, this.boardSize);
         }
         
         const data = this.state.savedLevels[n];
-        data.forEach(a => {
-            if(a.solved) return;
-            const wrap = document.createElement('div');
-            wrap.className = 'arrow-box'; 
-            wrap.style.width = wrap.style.height = arrowSize + 'px';
-            wrap.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px'; 
-            wrap.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
-            
-            const track = Geo.getTrackForDirection(a.dir, arrowSize);
-            const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
-            
-            wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
-                <path class="p-line" d="${initialPath.d}" />
-                <polygon class="p-head" points="-6,-6 6,0 -6,6" transform="translate(${initialPath.head.x},${initialPath.head.y}) rotate(${initialPath.head.angle})"/>
-            </svg>`;
-            wrap.onclick = () => this.move(a, wrap, arrowSize);
-            b.appendChild(wrap);
+        
+        // Используем requestAnimationFrame для гарантии, что DOM готов принять элементы
+        requestAnimationFrame(() => {
+            data.forEach(a => {
+                if(a.solved) return;
+                const wrap = document.createElement('div');
+                wrap.className = 'arrow-box'; 
+                
+                // Явные размеры и позиции
+                const leftPos = (a.x * cellSize + (cellSize - arrowSize) / 2);
+                const topPos = (a.y * cellSize + (cellSize - arrowSize) / 2);
+                
+                wrap.style.width = arrowSize + 'px';
+                wrap.style.height = arrowSize + 'px';
+                wrap.style.left = leftPos + 'px'; 
+                wrap.style.top = topPos + 'px';
+                
+                const track = Geo.getTrackForDirection(a.dir, arrowSize);
+                const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
+                
+                wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}" style="pointer-events:none;">
+                    <path class="p-line" d="${initialPath.d}" />
+                    <polygon class="p-head" points="-6,-6 6,0 -6,6" transform="translate(${initialPath.head.x},${initialPath.head.y}) rotate(${initialPath.head.angle})"/>
+                </svg>`;
+                wrap.onclick = (e) => { e.stopPropagation(); this.move(a, wrap, arrowSize); };
+                b.appendChild(wrap);
+            });
         });
     },
 
