@@ -205,6 +205,11 @@
         <div class="stats-row">
             <button onclick="App.nav('stats')" style="padding:10px 20px; background:var(--c-blue); color:white; border:none; border-radius:10px; font-weight:bold;">Stats</button>
             <button onclick="App.nav('shop')" style="padding:10px 20px; background:var(--c-gold); color:white; border:none; border-radius:10px; font-weight:bold;">Shop</button>
+            <button onclick="App.resetLeve138()"
+style="margin-top:10px; padding:8px 15px; background:#ff4d4d;
+color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;"›
+Fix Level 38
+</ button>
         </div>
     </div>
 
@@ -286,13 +291,7 @@
                 <button class="l-btn" id="l-zh" onclick="App.setLang('zh')">ZH</button>
             </div>
         </div>
-        <div class="set-row">
-        <span>Fix Level 38</span>
-        <button onclick="App.resetLevel38()" style="padding:8px 15px; background:#ff4d4d; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
-            Reset Level 38
-        </button>
-    </div>
-</div>
+        
         <div class="set-row" style="flex-direction: column; gap: 15px; align-items: flex-start;">
             <span>Telegram Status:</span>
             <div style="font-family: monospace; font-size: 0.9rem; color: #666;" id="tg-user-id">Not connected</div>
