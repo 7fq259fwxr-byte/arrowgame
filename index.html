@@ -1734,27 +1734,6 @@ window.addEventListener('pagehide', function() {
     console.log('Saving on page hide...');
     App.saveState();
 });
-// Добавьте в конце функции init():
-async init() {
-    console.log('App initializing...');
-    
-    this.isTelegram = !!(window.Telegram && Telegram.WebApp);
-    console.log('Is Telegram:', this.isTelegram);
-    
-    try {
-        await this.loadState();
-        
-        // АВТОМАТИЧЕСКАЯ ПРОВЕРКА И ИСПРАВЛЕНИЕ 38 УРОВНЯ
-        if (this.state.savedLevels[38]) {
-            const boardSize = this.getBoardSizeForLevel(38);
-            if (!this.isSolvable(this.state.savedLevels[38], boardSize)) {
-                console.log('⚠️ Обнаружен нерешаемый 38 уровень, исправляем автоматически...');
-                this.state.savedLevels[38] = this.generate(38, boardSize);
-                this.saveState();
-                console.log('✅ 38 уровень исправлен!');
-            }
-        }
-        // ... остальной код
 </script>
 </body>
 </html>
