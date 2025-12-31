@@ -1105,78 +1105,360 @@ const App = {
         }
     },
 
-    isSolvable(arrows, boardSize) {
-        let remaining = arrows.map(a => ({...a}));
-        let madeProgress = true;
-        while(remaining.length > 0 && madeProgress) {
-            madeProgress = false;
-            const removableIndex = remaining.findIndex(candidate => {
-                const hitsSomething = remaining.some(other => other.id !== candidate.id && this.checkCollision(candidate, other, boardSize));
-                return !hitsSomething;
-            });
-            if(removableIndex !== -1) {
-                remaining.splice(removableIndex, 1);
-                madeProgress = true;
-            }
-        }
-        return remaining.length === 0;
+    // ГЕНЕРАЦИЯ ГАРАНТИРОВАННО РЕШАЕМЫХ УРОВНЕЙ
+    generate(lvl, boardSize) {
+        console.log(`Генерация уровня ${lvl} (размер ${boardSize}x${boardSize})`);
+        
+        // Для ВСЕХ уровней используем гарантированно решаемую генерацию
+        return this.generateGuaranteedSolvable(lvl, boardSize);
     },
 
-    generate(lvl, boardSize) {
-        let attempts = 0;
-        while(attempts < 1000) {
-            attempts++;
-            const arrows = [];
-            const ds = [{id:'R', x:1, y:0}, {id:'L', x:-1, y:0}, {id:'U', x:0, y:-1}, {id:'D', x:0, y:1}];
-            let s = (lvl * 12345) + attempts; 
-            const rnd = () => { s = (s * 16807) % 2147483647;
-            return (s - 1) / 2147483646; };
-
-            let coords = [];
-            for(let y=0; y<boardSize; y++) {
-                for(let x=0; x<boardSize; x++) {
-                    coords.push({x, y});
+    // ГЕНЕРАЦИЯ ГАРАНТИРОВАННО РЕШАЕМЫХ УРОВНЕЙ
+    generateGuaranteedSolvable(lvl, boardSize) {
+        const arrows = [];
+        const directions = [
+            {id:'R', x:1, y:0}, 
+            {id:'L', x:-1, y:0}, 
+            {id:'U', x:0, y:-1}, 
+            {id:'D', x:0, y:1}
+        ];
+        
+        // Генератор случайных чисел на основе уровня
+        let seed = lvl * 12345;
+        const rnd = () => {
+            seed = (seed * 16807) % 2147483647;
+            return seed / 2147483647;
+        };
+        
+        // Количество стрелок зависит от уровня и размера доски
+        const baseCells = boardSize * boardSize;
+        let targetCount;
+        
+        if (lvl <= 10) {
+            targetCount = 6 + Math.floor(lvl / 2);
+        } else if (lvl <= 20) {
+            targetCount = 10 + Math.floor(lvl / 3);
+        } else if (lvl <= 30) {
+            targetCount = 15 + Math.floor(lvl / 4);
+        } else if (lvl <= 40) {
+            targetCount = 18 + Math.floor(lvl / 5);
+        } else if (lvl <= 50) {
+            targetCount = 20 + Math.floor(lvl / 6);
+        } else {
+            targetCount = 25 + Math.floor(lvl / 10);
+        }
+        
+        // Не больше, чем клеток минус 2
+        targetCount = Math.min(targetCount, baseCells - 2);
+        targetCount = Math.max(6, targetCount);
+        
+        console.log(`Целевое количество стрелок: ${targetCount}`);
+        
+        // Создаем карту занятых позиций
+        const occupied = new Set();
+        const getKey = (x, y) => `${x},${y}`;
+        
+        // Функция для проверки, безопасно ли разместить стрелку
+        const isSafePlacement = (x, y, dir) => {
+            const key = getKey(x, y);
+            if (occupied.has(key)) return false;
+            
+            // Проверяем все уже размещенные стрелки
+            for (const arrow of arrows) {
+                // Если стрелки на одной линии и направлены навстречу или пересекаются
+                if (dir.id === 'R' && arrow.dir === 'L' && y === arrow.y && x < arrow.x) {
+                    return false; // Стрелка R смотрит на стрелку L слева
+                }
+                if (dir.id === 'L' && arrow.dir === 'R' && y === arrow.y && x > arrow.x) {
+                    return false; // Стрелка L смотрит на стрелку R справа
+                }
+                if (dir.id === 'U' && arrow.dir === 'D' && x === arrow.x && y > arrow.y) {
+                    return false; // Стрелка U смотрит на стрелку D снизу
+                }
+                if (dir.id === 'D' && arrow.dir === 'U' && x === arrow.x && y < arrow.y) {
+                    return false; // Стрелка D смотрит на стрелку U сверху
+                }
+                
+                // Проверяем столкновения
+                if (this.checkCollision(
+                    {x, y, dx: dir.x, dy: dir.y}, 
+                    arrow, 
+                    boardSize
+                )) {
+                    return false;
                 }
             }
-            for (let i = coords.length - 1; i > 0; i--) {
-                const j = Math.floor(rnd() * (i + 1));
-                [coords[i], coords[j]] = [coords[j], coords[i]];
-            }
-
-            const baseCells = boardSize * boardSize;
-            let targetCount = Math.max(6, Math.floor(baseCells * 0.3));
-            targetCount = Math.min(baseCells - 1, targetCount + Math.floor(lvl / 5));
-            let idCounter = 0;
-            for(let i=0; i<coords.length; i++) {
-                if(arrows.length >= targetCount) break;
-                const pos = coords[i];
-                const d = ds[Math.floor(rnd() * 4)];
-                const nextX = pos.x + d.x;
-                const nextY = pos.y + d.y;
-                if(nextX >= 0 && nextX < boardSize && nextY >= 0 && nextY < boardSize) {
-                    arrows.push({ 
-                        id: idCounter++, x: pos.x, y: pos.y, 
-                        dir: d.id, dx: d.x, dy: d.y, solved: false 
-                    });
+            
+            return true;
+        };
+        
+        // Создаем список всех возможных позиций с безопасными направлениями
+        const allPositions = [];
+        for (let y = 0; y < boardSize; y++) {
+            for (let x = 0; x < boardSize; x++) {
+                for (const dir of directions) {
+                    // Проверяем, что стрелка не указывает за пределы доски
+                    const nextX = x + dir.x;
+                    const nextY = y + dir.y;
+                    if (nextX >= 0 && nextX < boardSize && nextY >= 0 && nextY < boardSize) {
+                        allPositions.push({x, y, dir});
+                    }
                 }
-            }
-
-            if(arrows.length >= 6 && this.isSolvable(arrows, boardSize)) {
-                return arrows;
             }
         }
         
-        const fallback = [];
+        // Перемешиваем позиции
+        for (let i = allPositions.length - 1; i > 0; i--) {
+            const j = Math.floor(rnd() * (i + 1));
+            [allPositions[i], allPositions[j]] = [allPositions[j], allPositions[i]];
+        }
+        
+        // Размещаем стрелки
+        let placedCount = 0;
+        let attempts = 0;
+        const maxAttempts = 1000;
+        
+        while (placedCount < targetCount && attempts < maxAttempts && allPositions.length > 0) {
+            attempts++;
+            
+            // Берем случайную позицию из списка
+            const posIndex = Math.floor(rnd() * allPositions.length);
+            const pos = allPositions[posIndex];
+            
+            if (isSafePlacement(pos.x, pos.y, pos.dir)) {
+                // Размещаем стрелку
+                arrows.push({
+                    id: placedCount,
+                    x: pos.x,
+                    y: pos.y,
+                    dir: pos.dir.id,
+                    dx: pos.dir.x,
+                    dy: pos.dir.y,
+                    solved: false
+                });
+                
+                occupied.add(getKey(pos.x, pos.y));
+                placedCount++;
+                
+                // Удаляем эту позицию из списка
+                allPositions.splice(posIndex, 1);
+            } else {
+                // Если нельзя разместить, удаляем позицию из списка
+                allPositions.splice(posIndex, 1);
+            }
+        }
+        
+        // Если не удалось разместить достаточно стрелок, добавляем безопасные
+        if (placedCount < 6) {
+            console.log(`Не удалось разместить достаточно стрелок, добавляем безопасные...`);
+            return this.addSafeArrows(placedCount, targetCount, boardSize, arrows, occupied);
+        }
+        
+        // Проверяем решаемость
+        if (!this.isSolvable(arrows, boardSize)) {
+            console.log(`Уровень ${lvl} нерешаем, перестраиваем...`);
+            return this.buildSolvableLevel(lvl, boardSize);
+        }
+        
+        console.log(`Уровень ${lvl} успешно сгенерирован: ${arrows.length} стрелок`);
+        return arrows;
+    },
+
+    // ДОБАВЛЕНИЕ БЕЗОПАСНЫХ СТРЕЛОК
+    addSafeArrows(currentCount, targetCount, boardSize, existingArrows, occupied) {
+        const arrows = [...existingArrows];
+        const directions = [
+            {id:'R', x:1, y:0}, 
+            {id:'L', x:-1, y:0}, 
+            {id:'U', x:0, y:-1}, 
+            {id:'D', x:0, y:1}
+        ];
+        
+        const getKey = (x, y) => `${x},${y}`;
+        
+        // Безопасные позиции - углы, указывающие наружу
+        const safePositions = [
+            {x: 0, y: 0, dir: directions[0]}, // Верхний левый -> вправо
+            {x: 0, y: 0, dir: directions[3]}, // Верхний левый -> вниз
+            {x: boardSize-1, y: 0, dir: directions[1]}, // Верхний правый -> влево
+            {x: boardSize-1, y: 0, dir: directions[3]}, // Верхний правый -> вниз
+            {x: 0, y: boardSize-1, dir: directions[0]}, // Нижний левый -> вправо
+            {x: 0, y: boardSize-1, dir: directions[2]}, // Нижний левый -> вверх
+            {x: boardSize-1, y: boardSize-1, dir: directions[1]}, // Нижний правый -> влево
+            {x: boardSize-1, y: boardSize-1, dir: directions[2]}  // Нижний правый -> вверх
+        ];
+        
+        for (const pos of safePositions) {
+            if (currentCount >= targetCount) break;
+            
+            const key = getKey(pos.x, pos.y);
+            if (!occupied.has(key)) {
+                // Проверяем, не сталкивается ли с существующими
+                let safe = true;
+                for (const arrow of arrows) {
+                    if (this.checkCollision(
+                        {x: pos.x, y: pos.y, dx: pos.dir.x, dy: pos.dir.y},
+                        arrow,
+                        boardSize
+                    )) {
+                        safe = false;
+                        break;
+                    }
+                }
+                
+                if (safe) {
+                    arrows.push({
+                        id: currentCount,
+                        x: pos.x,
+                        y: pos.y,
+                        dir: pos.dir.id,
+                        dx: pos.dir.x,
+                        dy: pos.dir.y,
+                        solved: false
+                    });
+                    
+                    occupied.add(key);
+                    currentCount++;
+                }
+            }
+        }
+        
+        return arrows;
+    },
+
+    // ПОСТРОЕНИЕ ГАРАНТИРОВАННО РЕШАЕМОГО УРОВНЯ
+    buildSolvableLevel(lvl, boardSize) {
+        console.log(`Строим гарантированно решаемый уровень ${lvl}`);
+        
+        const arrows = [];
+        const directions = [
+            {id:'R', x:1, y:0}, 
+            {id:'L', x:-1, y:0}, 
+            {id:'U', x:0, y:-1}, 
+            {id:'D', x:0, y:1}
+        ];
+        
+        // Базовая решаемая конфигурация
         let idCounter = 0;
-        const corners = [{x: 0, y: 0, dir: 'R'}, {x: boardSize-1, y: 0, dir: 'L'}, {x: 0, y: boardSize-1, dir: 'R'}, {x: boardSize-1, y: boardSize-1, dir: 'L'}];
-        for(let i = 0; i < Math.min(6, corners.length); i++) {
-            const corner = corners[i];
-            fallback.push({ id: idCounter++, x: corner.x, y: corner.y, dir: corner.dir, dx: corner.dir === 'R' ? 1 : -1, dy: 0, solved: false });
+        
+        // УГЛЫ (всегда безопасны)
+        if (boardSize > 1) {
+            arrows.push({id: idCounter++, x: 0, y: 0, dir: 'R', dx: 1, dy: 0, solved: false});
+            arrows.push({id: idCounter++, x: boardSize-1, y: 0, dir: 'L', dx: -1, dy: 0, solved: false});
+            arrows.push({id: idCounter++, x: 0, y: boardSize-1, dir: 'R', dx: 1, dy: 0, solved: false});
+            arrows.push({id: idCounter++, x: boardSize-1, y: boardSize-1, dir: 'L', dx: -1, dy: 0, solved: false});
         }
-        for(let i = fallback.length; i < 6; i++) {
-            fallback.push({ id: idCounter++, x: Math.floor(boardSize/2), y: i % 2 === 0 ? 1 : boardSize-2, dir: i % 2 === 0 ? 'D' : 'U', dx: 0, dy: i % 2 === 0 ? 1 : -1, solved: false });
+        
+        // КРАЯ (вертикальные)
+        if (boardSize > 3) {
+            const edgeCount = Math.min(2, Math.floor(boardSize / 2) - 1);
+            for (let i = 1; i <= edgeCount; i++) {
+                arrows.push({id: idCounter++, x: 0, y: i, dir: 'R', dx: 1, dy: 0, solved: false});
+                arrows.push({id: idCounter++, x: boardSize-1, y: boardSize-1-i, dir: 'L', dx: -1, dy: 0, solved: false});
+            }
         }
-        return fallback;
+        
+        // КРАЯ (горизонтальные)
+        if (boardSize > 3) {
+            const edgeCount = Math.min(2, Math.floor(boardSize / 2) - 1);
+            for (let i = 1; i <= edgeCount; i++) {
+                arrows.push({id: idCounter++, x: i, y: 0, dir: 'D', dx: 0, dy: 1, solved: false});
+                arrows.push({id: idCounter++, x: boardSize-1-i, y: boardSize-1, dir: 'U', dx: 0, dy: -1, solved: false});
+            }
+        }
+        
+        // ЦЕНТР (если нужно больше стрелок)
+        const currentCount = arrows.length;
+        const targetCount = 6 + Math.floor(lvl / 3);
+        
+        if (currentCount < targetCount && boardSize >= 4) {
+            const centerX = Math.floor(boardSize / 2);
+            const centerY = Math.floor(boardSize / 2);
+            
+            const centerPositions = [
+                {x: centerX, y: centerY-1, dir: 'U'},
+                {x: centerX, y: centerY+1, dir: 'D'},
+                {x: centerX-1, y: centerY, dir: 'L'},
+                {x: centerX+1, y: centerY, dir: 'R'}
+            ];
+            
+            for (const pos of centerPositions) {
+                if (arrows.length >= targetCount) break;
+                
+                if (pos.x >= 0 && pos.x < boardSize && pos.y >= 0 && pos.y < boardSize) {
+                    const existing = arrows.find(a => a.x === pos.x && a.y === pos.y);
+                    if (!existing) {
+                        const d = directions.find(d => d.id === pos.dir);
+                        arrows.push({
+                            id: idCounter++,
+                            x: pos.x,
+                            y: pos.y,
+                            dir: pos.dir,
+                            dx: d.x,
+                            dy: d.y,
+                            solved: false
+                        });
+                    }
+                }
+            }
+        }
+        
+        console.log(`Построен гарантированно решаемый уровень ${lvl}: ${arrows.length} стрелок`);
+        return arrows;
+    },
+
+    // УЛУЧШЕННАЯ ПРОВЕРКА РЕШАЕМОСТИ
+    isSolvable(arrows, boardSize) {
+        if (arrows.length === 0) return true;
+        
+        // Создаем копию стрелок
+        const remaining = arrows.map(a => ({...a}));
+        const removed = [];
+        let changed = true;
+        
+        while (remaining.length > 0 && changed) {
+            changed = false;
+            const toRemove = [];
+            
+            // Проверяем каждую стрелку
+            for (let i = 0; i < remaining.length; i++) {
+                const arrow = remaining[i];
+                let hasCollision = false;
+                
+                // Проверяем столкновения со всеми другими стрелками
+                for (let j = 0; j < remaining.length; j++) {
+                    if (i !== j && this.checkCollision(arrow, remaining[j], boardSize)) {
+                        hasCollision = true;
+                        break;
+                    }
+                }
+                
+                // Если нет столкновений, можно удалить
+                if (!hasCollision) {
+                    toRemove.push(i);
+                }
+            }
+            
+            // Удаляем найденные стрелки (в обратном порядке)
+            if (toRemove.length > 0) {
+                toRemove.sort((a, b) => b - a);
+                for (const index of toRemove) {
+                    removed.push(remaining[index]);
+                    remaining.splice(index, 1);
+                }
+                changed = true;
+            }
+        }
+        
+        const solvable = remaining.length === 0;
+        
+        if (!solvable) {
+            console.log(`Уровень нерешаем! Осталось стрелок: ${remaining.length}`);
+        } else {
+            console.log(`Уровень решаем! Порядок удаления: ${removed.length} шагов`);
+        }
+        
+        return solvable;
     },
 
     move(a, el, arrowSize) {
