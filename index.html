@@ -1723,16 +1723,6 @@ window.addEventListener('pagehide', function() {
     console.log('Saving on page hide...');
     App.saveState();
 });
-// Добавьте эту кнопку в HTML (внутри #scr-home например):
-<button onclick="App.resetLevels()" style="padding:10px; background:red; color:white; margin-top:10px;">Сбросить 38 уровень</button>
-
-resetLevels() {
-    if (confirm('Сбросить 38 уровень? Он будет перегенерирован как решаемый.')) {
-        delete this.state.savedLevels[38];
-        this.saveState();
-        alert('38 уровень сброшен. Перезагрузите игру!');
-    }
-},
 </script>
 </body>
 </html>
