@@ -150,6 +150,122 @@
         .loading-spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--c-blue); border-radius: 50%; animation: spin 1s linear infinite; }
         
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* СТИЛИ ДЛЯ МАГАЗИНА */
+        .skin-card {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .skin-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+        }
+
+        .skin-card.selected {
+            border-color: var(--c-gold);
+            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+        }
+
+        .skin-card.owned:not(.selected) {
+            border-color: var(--c-green);
+        }
+
+        .skin-preview {
+            width: 60px;
+            height: 60px;
+            margin-bottom: 10px;
+        }
+
+        .skin-name {
+            font-weight: bold;
+            color: var(--c-blue);
+            margin-bottom: 5px;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .skin-price {
+            color: var(--c-gold);
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .skin-button {
+            width: 100%;
+            padding: 8px 0;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .skin-button.buy {
+            background: var(--c-blue);
+            color: white;
+        }
+
+        .skin-button.buy:hover {
+            background: var(--c-blue);
+            opacity: 0.9;
+        }
+
+        .skin-button.buy:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .skin-button.select {
+            background: var(--c-green);
+            color: white;
+        }
+
+        .skin-button.select:hover {
+            background: var(--c-green);
+            opacity: 0.9;
+        }
+
+        .skin-button.selected {
+            background: var(--c-gold);
+            color: white;
+            cursor: default;
+        }
+
+        .skin-button.owned {
+            background: var(--c-gray);
+            color: #666;
+            cursor: default;
+        }
+
+        /* Анимация покупки */
+        @keyframes purchasePulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        .purchasing {
+            animation: purchasePulse 0.5s ease-in-out infinite;
+        }
+        
+        /* Анимации уведомлений */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
     </style>
 </head>
 <body>
@@ -261,10 +377,43 @@
 
     <div id="scr-shop" class="screen">
         <div style="padding: 20px;">
-            <h2 style="color: var(--c-blue); margin-bottom: 20px;">Shop</h2>
-            <div id="shop-content" style="text-align: center; padding: 40px 20px;">
-                <div style="font-size: 1.2rem; margin-bottom: 20px;">Shop will be available soon!</div>
-                <div style="color: #666;">Connect via Telegram for full features</div>
+            <h2 id="shop-title" style="color: var(--c-blue); margin-bottom: 10px;">🛍️ Shop</h2>
+            <div id="shop-coins-display" style="margin-bottom: 20px; padding: 10px; background: rgba(255, 215, 0, 0.1); border-radius: 10px; text-align: center; font-weight: bold; color: var(--c-gold);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/></svg>
+                <span id="shop-coins">0</span>
+            </div>
+            
+            <div id="shop-loading" class="loading">
+                <div class="loading-spinner"></div>
+            </div>
+            
+            <div id="shop-error" style="display: none; text-align: center; padding: 40px 20px; color: var(--c-red);"></div>
+            
+            <div id="skins-grid" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 15px; padding-bottom: 90px;"></div>
+            
+            <!-- Предпросмотр скина -->
+            <div id="skin-preview" style="display: none; margin-top: 20px; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
+                <h4 id="preview-title" style="color: var(--c-blue); margin-bottom: 15px;">Preview</h4>
+                <div id="preview-arrow" style="width: 100px; height: 100px; margin: 0 auto;">
+                    <!-- Стрелка для предпросмотра -->
+                    <svg id="preview-svg" width="100" height="100" viewBox="0 0 100 100">
+                        <defs>
+                            <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
+                                <stop offset="25%" style="stop-color:#ffff00;stop-opacity:1" />
+                                <stop offset="50%" style="stop-color:#00ff00;stop-opacity:1" />
+                                <stop offset="75%" style="stop-color:#00ffff;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:1" />
+                            </linearGradient>
+                        </defs>
+                        <path class="preview-line" d="M20,50 L80,50" stroke="#003366" stroke-width="8" stroke-linecap="round"/>
+                        <polygon class="preview-head" points="70,40 90,50 70,60" fill="#003366"/>
+                    </svg>
+                </div>
+                <div id="preview-info" style="margin-top: 15px; color: #666; font-size: 0.9rem;">
+                    <div id="preview-price"></div>
+                    <div id="preview-status"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -337,7 +486,21 @@ const GAME_TEXTS = {
         connect: "Подключить Telegram",
         recovery: "Восстановление",
         fullHP: "Полные жизни",
-        heart: "Сердце"
+        heart: "Сердце",
+        // Добавленные тексты для магазина
+        shopTitle: "🛍️ Магазин скинов",
+        yourCoins: "Ваши монеты:",
+        buy: "Купить",
+        buying: "Покупка...",
+        owned: "Куплен",
+        selected: "Выбран",
+        select: "Выбрать",
+        preview: "Предпросмотр",
+        insufficientCoins: "❌ Недостаточно монет",
+        purchaseSuccess: "✅ Скин куплен!",
+        selectSuccess: "✅ Скин выбран!",
+        alreadyOwned: "❌ Уже есть",
+        alreadySelected: "❌ Уже выбран"
     },
     en: {
         level: "LEVEL",
@@ -362,7 +525,21 @@ const GAME_TEXTS = {
         connect: "Connect Telegram",
         recovery: "Recovery",
         fullHP: "Full HP",
-        heart: "Heart"
+        heart: "Heart",
+        // Added shop texts
+        shopTitle: "🛍️ Skin Shop",
+        yourCoins: "Your coins:",
+        buy: "Buy",
+        buying: "Buying...",
+        owned: "Owned",
+        selected: "Selected",
+        select: "Select",
+        preview: "Preview",
+        insufficientCoins: "❌ Insufficient coins",
+        purchaseSuccess: "✅ Skin purchased!",
+        selectSuccess: "✅ Skin selected!",
+        alreadyOwned: "❌ Already owned",
+        alreadySelected: "❌ Already selected"
     },
     zh: {
         level: "关卡",
@@ -387,7 +564,89 @@ const GAME_TEXTS = {
         connect: "连接Telegram",
         recovery: "恢复",
         fullHP: "满生命",
-        heart: "心"
+        heart: "心",
+        // Added shop texts
+        shopTitle: "🛍️ 皮肤商店",
+        yourCoins: "您的金币:",
+        buy: "购买",
+        buying: "购买中...",
+        owned: "已拥有",
+        selected: "已选择",
+        select: "选择",
+        preview: "预览",
+        insufficientCoins: "❌ 金币不足",
+        purchaseSuccess: "✅ 皮肤已购买!",
+        selectSuccess: "✅ 皮肤已选择!",
+        alreadyOwned: "❌ 已经拥有",
+        alreadySelected: "❌ 已经选择"
+    }
+};
+
+// Глобальные данные скинов
+const SKINS_DATA = {
+    "default": {
+        "id": "default",
+        "name": "Classic",
+        "price": 0,
+        "primary_color": "#003366",
+        "arrow_color": "#003366",
+        "head_shape": "default"
+    },
+    "fire": {
+        "id": "fire", 
+        "name": "Fire",
+        "price": 1000,
+        "primary_color": "#FF4500",
+        "arrow_color": "#FF4500",
+        "head_shape": "sharp"
+    },
+    "ice": {
+        "id": "ice",
+        "name": "Ice",
+        "price": 2000,
+        "primary_color": "#00BFFF",
+        "arrow_color": "#00BFFF",
+        "head_shape": "crystal"
+    },
+    "nature": {
+        "id": "nature",
+        "name": "Nature",
+        "price": 3500,
+        "primary_color": "#228B22",
+        "arrow_color": "#32CD32",
+        "head_shape": "leaf"
+    },
+    "shadow": {
+        "id": "shadow",
+        "name": "Shadow",
+        "price": 5000,
+        "primary_color": "#4B0082",
+        "arrow_color": "#8A2BE2",
+        "head_shape": "shadow"
+    },
+    "golden": {
+        "id": "golden",
+        "name": "Golden",
+        "price": 7000,
+        "primary_color": "#FFD700",
+        "arrow_color": "#FFD700",
+        "head_shape": "royal"
+    },
+    "neon": {
+        "id": "neon",
+        "name": "Neon",
+        "price": 8000,
+        "primary_color": "#00FF00",
+        "arrow_color": "#FF00FF",
+        "head_shape": "tech"
+    },
+    "rainbow": {
+        "id": "rainbow",
+        "name": "Rainbow",
+        "price": 10000,
+        "primary_color": "#FF1493",
+        "arrow_color": "url(#rainbowGradient)",
+        "head_shape": "magic"
     }
 };
 
@@ -522,7 +781,8 @@ const App = {
         tgConnected: false,
         coins: 0,
         skins: ['default'],
-        selectedSkin: 'default'
+        selectedSkin: 'default',
+        shopItems: []
     },
     curNum: 1,
     boardSize: 5,
@@ -537,13 +797,18 @@ const App = {
     storageKey: 'arrows_pro_save_v1',
 
     async init() {
-        console.log('App initializing...');
+        console.log('App initializing with skins system...');
         
         this.isTelegram = !!(window.Telegram && Telegram.WebApp);
         console.log('Is Telegram:', this.isTelegram);
         
         try {
             await this.loadState();
+            
+            // Применяем сохраненный скин
+            if (this.state.selectedSkin) {
+                this.applySkin(this.state.selectedSkin);
+            }
             
             // === ВАЖНО: АВТОМАТИЧЕСКАЯ ПРОВЕРКА И ИСПРАВЛЕНИЕ УРОВНЕЙ ===
             await this.autoFixProblemLevels();
@@ -565,12 +830,11 @@ const App = {
             window.addEventListener('touchstart', unlock);
             window.addEventListener('click', unlock);
             
-            console.log('App initialized successfully');
+            console.log('App with skins system initialized successfully');
             console.log('State:', this.state);
             
         } catch (e) {
             console.error('Error initializing app:', e);
-            // Даже при ошибке показываем интерфейс
             this.updateUI();
         }
     },
@@ -741,7 +1005,10 @@ const App = {
                     coins: saved.coins || 0,
                     lang: saved.lang || 'ru',
                     sound: saved.sound !== undefined ? saved.sound : true,
-                    vib: saved.vib !== undefined ? saved.vib : true
+                    vib: saved.vib !== undefined ? saved.vib : true,
+                    skins: saved.skins || ['default'],
+                    selectedSkin: saved.selectedSkin || 'default',
+                    shopItems: saved.shopItems || []
                 };
                 console.log('✅ Loaded from localStorage:', this.state);
                 return;
@@ -767,6 +1034,9 @@ const App = {
             this.state.maxLvl = 1;
             this.state.lives = 3;
             this.state.coins = 0;
+            this.state.skins = ['default'];
+            this.state.selectedSkin = 'default';
+            this.state.shopItems = [];
         }
     },
 
@@ -806,6 +1076,8 @@ const App = {
                     this.state.tgLastName = user.last_name;
                     this.state.tgConnected = true;
                     this.loadUserData();
+                    // Загружаем магазин при инициализации
+                    this.loadShop();
                 } else {
                     this.showTelegramConnectionButton();
                 }
@@ -845,6 +1117,9 @@ const App = {
                     this.state.selectedSkin = data.user.selected_skin || 'default';
                     this.updateUI();
                     this.saveState();
+                    
+                    // Применяем выбранный скин
+                    this.applySkin(this.state.selectedSkin);
                     
                     document.getElementById('tg-info').style.display = 'block';
                     document.getElementById('nickname-display').innerText = this.state.tgUsername;
@@ -1017,6 +1292,8 @@ const App = {
         this.state.tgConnected = true;
         this.state.coins = 100;
         this.state.maxLvl = 5;
+        this.state.skins = ['default', 'fire', 'ice'];
+        this.state.selectedSkin = 'default';
         this.updateUI();
         this.saveState();
         document.getElementById('tg-info').style.display = 'block';
@@ -1089,6 +1366,7 @@ const App = {
             if(scr !== 'win') Confetti.stop();
             if(scr === 'map') this.renderMap();
             if(scr === 'stats') this.showStatsScreen();
+            if(scr === 'shop') this.loadShop(); // Загружаем магазин при переходе
             
             const boardZone = document.querySelector('.board-zone');
             if (boardZone) boardZone.classList.remove('error-shake');
@@ -1257,6 +1535,12 @@ const App = {
             const data = this.state.savedLevels[n];
             console.log(`Level ${n} has ${data.length} arrows`);
             
+            // Получаем текущий скин
+            const currentSkin = this.state.shopItems.find(s => s.id === this.state.selectedSkin) || 
+                              SKINS_DATA[this.state.selectedSkin] || SKINS_DATA.default;
+            const arrowColor = currentSkin.arrow_color || '#003366';
+            const isRainbow = arrowColor.includes('rainbowGradient');
+            
             data.forEach(a => {
                 a.solved = false;
             });
@@ -1271,10 +1555,10 @@ const App = {
                 const track = Geo.getTrackForDirection(a.dir, arrowSize);
                 const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
                 
-                wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
-                    <path class="p-line" d="${initialPath.d}" />
-                    <polygon class="p-head" points="-6,-6 6,0 -6,6" transform="translate(${initialPath.head.x},${initialPath.head.y}) rotate(${initialPath.head.angle})"/>
-                </svg>`;
+                // Создаем SVG с учетом скина
+                const svgContent = this.createArrowSVG(arrowSize, initialPath, currentSkin, arrowColor, isRainbow);
+                
+                wrap.innerHTML = svgContent;
                 
                 wrap.onclick = () => this.move(a, wrap, arrowSize);
                 b.appendChild(wrap);
@@ -1284,6 +1568,61 @@ const App = {
             alert('Ошибка загрузки уровня. Попробуйте еще раз.');
             this.nav('home');
         }
+    },
+    
+    // Создание SVG стрелки с учетом скина
+    createArrowSVG(arrowSize, path, skin, arrowColor, isRainbow) {
+        const headShape = skin.head_shape || 'default';
+        
+        let headSVG = '';
+        switch(headShape) {
+            case 'sharp':
+                headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})"/>`;
+                break;
+            case 'crystal':
+                headSVG = `<polygon class="p-head" points="-6,-6 8,0 -6,6" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})"/>
+                          <polygon class="p-head-crystal" points="-4,-4 4,0 -4,4" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" fill="white" opacity="0.7"/>`;
+                break;
+            case 'leaf':
+                headSVG = `<path class="p-head" d="M-8,0 L8,-5 L4,0 L8,5 Z" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})"/>`;
+                break;
+            case 'shadow':
+                headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})"/>
+                          <polygon class="p-head-shadow" points="-6,-6 6,0 -6,6" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" fill="black" opacity="0.3"/>`;
+                break;
+            case 'royal':
+                headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" stroke="#FFA500" stroke-width="2"/>
+                          <circle cx="${path.head.x}" cy="${path.head.y}" r="3" fill="#FFA500" transform="rotate(${path.head.angle} ${path.head.x} ${path.head.y})"/>`;
+                break;
+            case 'tech':
+                headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})"/>
+                          <rect x="${path.head.x + 6}" y="${path.head.y - 2}" width="4" height="4" fill="#00FF00" transform="rotate(${path.head.angle} ${path.head.x} ${path.head.y})"/>`;
+                break;
+            case 'magic':
+                headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})"/>
+                          <circle cx="${path.head.x - 3}" cy="${path.head.y}" r="2" fill="white" opacity="0.8" transform="rotate(${path.head.angle} ${path.head.x} ${path.head.y})">
+                              <animate attributeName="r" values="2;4;2" dur="1s" repeatCount="indefinite"/>
+                          </circle>`;
+                break;
+            default:
+                headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})"/>`;
+        }
+        
+        return `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
+            ${isRainbow ? `
+            <defs>
+                <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
+                    <stop offset="25%" style="stop-color:#ffff00;stop-opacity:1" />
+                    <stop offset="50%" style="stop-color:#00ff00;stop-opacity:1" />
+                    <stop offset="75%" style="stop-color:#00ffff;stop-opacity:1" />
+                    <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:1" />
+                </linearGradient>
+            </defs>
+            ` : ''}
+            <path class="p-line" d="${path.d}" stroke="${isRainbow ? 'url(#rainbowGradient)' : arrowColor}" />
+            ${headSVG}
+        </svg>`;
     },
 
     addGridLines(board, boardSize) {
@@ -1760,6 +2099,418 @@ const App = {
     hideModal() { 
         const modal = document.getElementById('modal-timers'); 
         if (modal) modal.style.display = 'none'; 
+    },
+
+    // --- МАГАЗИН И СКИНЫ ---
+
+    // Функция загрузки магазина
+    async loadShop() {
+        try {
+            const shopLoading = document.getElementById('shop-loading');
+            const skinsGrid = document.getElementById('skins-grid');
+            const shopError = document.getElementById('shop-error');
+            const previewDiv = document.getElementById('skin-preview');
+            const shopTitle = document.getElementById('shop-title');
+            const shopCoins = document.getElementById('shop-coins');
+            
+            if (shopLoading) shopLoading.style.display = 'flex';
+            if (skinsGrid) skinsGrid.style.display = 'none';
+            if (shopError) shopError.style.display = 'none';
+            if (previewDiv) previewDiv.style.display = 'none';
+            
+            const t = GAME_TEXTS[this.state.lang];
+            if (shopTitle) shopTitle.innerText = t.shopTitle;
+            if (shopCoins) shopCoins.innerText = this.state.coins;
+            
+            // Загружаем данные магазина
+            const response = await fetch(`${API_BASE_URL}/get_shop_items`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.state.tgUserId || 0,
+                    lang: this.state.lang
+                })
+            });
+            
+            if (!response.ok) throw new Error('Network error');
+            
+            const data = await response.json();
+            
+            if (!data.success) throw new Error(data.error || 'Failed to load shop');
+            
+            this.state.shopItems = data.skins || [];
+            this.state.coins = data.user_coins || 0;
+            this.state.selectedSkin = data.selected_skin || 'default';
+            
+            this.updateUI();
+            this.renderShop();
+            
+        } catch (error) {
+            console.error('Error loading shop:', error);
+            const shopError = document.getElementById('shop-error');
+            if (shopError) {
+                shopError.style.display = 'block';
+                shopError.innerHTML = `
+                    <div style="color: var(--c-red); text-align: center; padding: 20px;">
+                    ${GAME_TEXTS[this.state.lang].shopEmpty || 'Shop unavailable'}<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+        } finally {
+            const shopLoading = document.getElementById('shop-loading');
+            if (shopLoading) shopLoading.style.display = 'none';
+        }
+    },
+
+    // Функция отрисовки магазина
+    renderShop() {
+        const skinsGrid = document.getElementById('skins-grid');
+        const shopCoins = document.getElementById('shop-coins');
+        const shopTitle = document.getElementById('shop-title');
+        const previewDiv = document.getElementById('skin-preview');
+        
+        if (!skinsGrid) return;
+        
+        const t = GAME_TEXTS[this.state.lang];
+        
+        // Обновляем заголовки
+        if (shopTitle) shopTitle.innerText = t.shopTitle;
+        if (shopCoins) shopCoins.innerText = this.state.coins;
+        
+        skinsGrid.innerHTML = '';
+        skinsGrid.style.display = 'grid';
+        
+        // Скрываем предпросмотр если есть
+        if (previewDiv) previewDiv.style.display = 'none';
+        
+        // Создаем карточки для каждого скина
+        this.state.shopItems.forEach(skin => {
+            const card = document.createElement('div');
+            card.className = 'skin-card';
+            
+            if (skin.id === this.state.selectedSkin) {
+                card.classList.add('selected');
+            } else if (skin.owned) {
+                card.classList.add('owned');
+            }
+            
+            // Создаем превью скина
+            const previewSvg = this.createSkinPreview(skin);
+            
+            card.innerHTML = `
+                <div class="skin-preview">${previewSvg}</div>
+                <div class="skin-name">${skin.name}</div>
+                <div class="skin-price">${skin.price === 0 ? t.owned || 'FREE' : `${skin.price} 🪙`}</div>
+                ${this.createSkinButton(skin)}
+            `;
+            
+            // Клик для предпросмотра
+            card.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('skin-button')) {
+                    this.showSkinPreview(skin);
+                }
+            });
+            
+            skinsGrid.appendChild(card);
+        });
+    },
+
+    // Создание кнопки для скина
+    createSkinButton(skin) {
+        const t = GAME_TEXTS[this.state.lang];
+        
+        if (skin.selected) {
+            return `<button class="skin-button selected" disabled>${t.selected || 'Selected'}</button>`;
+        }
+        
+        if (skin.owned) {
+            return `<button class="skin-button select" onclick="App.selectSkin('${skin.id}')">${t.select || 'Select'}</button>`;
+        }
+        
+        if (skin.can_buy) {
+            return `<button class="skin-button buy" onclick="App.buySkin('${skin.id}')">${t.buy || 'Buy'}</button>`;
+        }
+        
+        return `<button class="skin-button buy" disabled>${skin.price} 🪙</button>`;
+    },
+
+    // Создание превью скина
+    createSkinPreview(skin) {
+        const arrowColor = skin.arrow_color || '#003366';
+        const isRainbow = arrowColor.includes('rainbowGradient');
+        
+        return `
+            <svg width="60" height="60" viewBox="0 0 100 100">
+                ${isRainbow ? `
+                <defs>
+                    <linearGradient id="rainbowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
+                        <stop offset="25%" style="stop-color:#ffff00;stop-opacity:1" />
+                        <stop offset="50%" style="stop-color:#00ff00;stop-opacity:1" />
+                        <stop offset="75%" style="stop-color:#00ffff;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#ff00ff;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                ` : ''}
+                <path d="M20,50 L80,50" 
+                      stroke="${isRainbow ? 'url(#rainbowGradient)' : arrowColor}" 
+                      stroke-width="8" 
+                      stroke-linecap="round"/>
+                ${this.createArrowHead(skin, arrowColor, isRainbow)}
+            </svg>
+        `;
+    },
+
+    // Создание наконечника стрелки в зависимости от скина
+    createArrowHead(skin, arrowColor, isRainbow) {
+        const headShape = skin.head_shape || 'default';
+        
+        switch(headShape) {
+            case 'sharp':
+                return `<polygon points="70,40 90,50 70,60" fill="${isRainbow ? 'url(#rainbowGradient)' : arrowColor}"/>`;
+            case 'crystal':
+                return `<polygon points="72,45 85,50 72,55" fill="${arrowColor}"/>
+                        <polygon points="72,45 78,50 72,55" fill="white" opacity="0.7"/>`;
+            case 'leaf':
+                return `<path d="M75,50 L90,45 L85,50 L90,55 Z" fill="${arrowColor}"/>`;
+            case 'shadow':
+                return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}"/>
+                        <polygon points="72,42 88,50 72,58" fill="black" opacity="0.3"/>`;
+            case 'royal':
+                return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}" stroke="#FFA500" stroke-width="2"/>
+                        <circle cx="80" cy="50" r="3" fill="#FFA500"/>`;
+            case 'tech':
+                return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}"/>
+                        <rect x="88" y="48" width="4" height="4" fill="#00FF00"/>`;
+            case 'magic':
+                return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}"/>
+                        <circle cx="75" cy="50" r="3" fill="white" opacity="0.8">
+                            <animate attributeName="r" values="3;5;3" dur="1s" repeatCount="indefinite"/>
+                        </circle>`;
+            default:
+                return `<polygon points="70,40 90,50 70,60" fill="${isRainbow ? 'url(#rainbowGradient)' : arrowColor}"/>`;
+        }
+    },
+
+    // Показ предпросмотра скина
+    showSkinPreview(skin) {
+        const previewDiv = document.getElementById('skin-preview');
+        const previewTitle = document.getElementById('preview-title');
+        const previewSvg = document.getElementById('preview-svg');
+        const previewPrice = document.getElementById('preview-price');
+        const previewStatus = document.getElementById('preview-status');
+        const t = GAME_TEXTS[this.state.lang];
+        
+        if (!previewDiv) return;
+        
+        previewDiv.style.display = 'block';
+        previewTitle.innerText = `${skin.name}`;
+        
+        // Обновляем цвета в предпросмотре
+        const arrowColor = skin.arrow_color || '#003366';
+        const isRainbow = arrowColor.includes('rainbowGradient');
+        
+        const line = previewSvg.querySelector('.preview-line');
+        const head = previewSvg.querySelector('.preview-head');
+        
+        line.setAttribute('stroke', isRainbow ? 'url(#rainbowGradient)' : arrowColor);
+        head.setAttribute('fill', isRainbow ? 'url(#rainbowGradient)' : arrowColor);
+        
+        // Обновляем информацию
+        previewPrice.innerHTML = `<strong>${t.yourCoins || 'Price'}:</strong> ${skin.price} 🪙`;
+        
+        if (skin.selected) {
+            previewStatus.innerHTML = `<span style="color: var(--c-gold);">★ ${t.selected || 'Selected'}</span>`;
+        } else if (skin.owned) {
+            previewStatus.innerHTML = `<span style="color: var(--c-green);">✓ ${t.owned || 'Owned'}</span>`;
+        } else if (skin.can_buy) {
+            previewStatus.innerHTML = `<span style="color: var(--c-blue);">${t.buy || 'Available'}</span>`;
+        } else {
+            previewStatus.innerHTML = `<span style="color: var(--c-red);">${t.insufficientCoins || 'Need more coins'}</span>`;
+        }
+        
+        // Прокручиваем к предпросмотру
+        previewDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
+
+    // Покупка скина
+    async buySkin(skinId) {
+        if (!this.state.tgConnected) {
+            this.showNotification('Please connect Telegram to purchase skins', 'error');
+            return;
+        }
+        
+        const t = GAME_TEXTS[this.state.lang];
+        const button = event.target;
+        const originalText = button.innerText;
+        
+        try {
+            button.innerText = t.buying || 'Buying...';
+            button.classList.add('purchasing');
+            button.disabled = true;
+            
+            const response = await fetch(`${API_BASE_URL}/buy_skin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.state.tgUserId,
+                    skin_id: skinId
+                })
+            });
+            
+            if (!response.ok) throw new Error('Network error');
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Purchase failed');
+            }
+            
+            // Обновляем состояние
+            this.state.coins = data.coins;
+            this.state.skins = data.skins;
+            
+            // Обновляем UI
+            this.updateUI();
+            
+            // Показываем сообщение об успехе
+            const skin = this.state.shopItems.find(s => s.id === skinId);
+            if (skin) {
+                this.showNotification(t.purchaseSuccess || 'Purchase successful!', 'success');
+            }
+            
+            // Перезагружаем магазин
+            this.loadShop();
+            
+        } catch (error) {
+            console.error('Error buying skin:', error);
+            
+            let errorMessage = error.message;
+            if (errorMessage.includes('Already owned')) {
+                errorMessage = t.alreadyOwned || 'Already owned';
+            } else if (errorMessage.includes('Insufficient coins')) {
+                errorMessage = t.insufficientCoins || 'Insufficient coins';
+            }
+            
+            this.showNotification(errorMessage, 'error');
+            
+            // Восстанавливаем кнопку
+            button.innerText = originalText;
+            button.classList.remove('purchasing');
+            button.disabled = false;
+        }
+    },
+
+    // Выбор скина
+    async selectSkin(skinId) {
+        if (!this.state.tgConnected) {
+            this.showNotification('Please connect Telegram to select skins', 'error');
+            return;
+        }
+        
+        const t = GAME_TEXTS[this.state.lang];
+        const button = event.target;
+        const originalText = button.innerText;
+        
+        try {
+            button.innerText = '...';
+            button.disabled = true;
+            
+            const response = await fetch(`${API_BASE_URL}/select_skin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.state.tgUserId,
+                    skin_id: skinId
+                })
+            });
+            
+            if (!response.ok) throw new Error('Network error');
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Selection failed');
+            }
+            
+            // Обновляем состояние
+            this.state.selectedSkin = data.selected_skin;
+            
+            // Применяем скин
+            this.applySkin(skinId);
+            
+            // Показываем сообщение об успехе
+            const skin = this.state.shopItems.find(s => s.id === skinId);
+            if (skin) {
+                this.showNotification(t.selectSuccess || 'Skin selected!', 'success');
+            }
+            
+            // Перезагружаем магазин
+            this.loadShop();
+            
+        } catch (error) {
+            console.error('Error selecting skin:', error);
+            
+            let errorMessage = error.message;
+            if (errorMessage.includes('already selected')) {
+                errorMessage = t.alreadySelected || 'Already selected';
+            }
+            
+            this.showNotification(errorMessage, 'error');
+            
+            // Восстанавливаем кнопку
+            button.innerText = originalText;
+            button.disabled = false;
+        }
+    },
+
+    // Применение скина
+    applySkin(skinId) {
+        const skin = this.state.shopItems.find(s => s.id === skinId) || SKINS_DATA[skinId];
+        if (!skin) return;
+        
+        // Применяем primary color к CSS переменным
+        const root = document.documentElement;
+        root.style.setProperty('--c-blue', skin.primary_color);
+        
+        // Сохраняем выбранный скин
+        this.state.selectedSkin = skinId;
+        this.saveState();
+        
+        // Обновляем UI
+        this.updateUI();
+    },
+
+    // Функция показа уведомления
+    showNotification(message, type = 'info') {
+        // Создаем элемент уведомления
+        const notification = document.createElement('div');
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#2ecc71' : type === 'error' ? '#ff4d4d' : '#3498db'};
+            color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+        `;
+        
+        notification.innerText = message;
+        document.body.appendChild(notification);
+        
+        // Удаляем через 3 секунды
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 3000);
     }
 };
 
