@@ -110,17 +110,6 @@
         .btn-next { background: var(--c-blue); color: white; box-shadow: 0 8px 20px rgba(0,51,102,0.25); }
 
         .grid-line { position: absolute; background: rgba(0, 51, 102, 0.05); z-index: 1; }
-
-        //Добавьте эту кнопку в HTML (внутри #scr-home например):
-        <button onclick="App.resetLevels()" style="padding:10px; background:red; color:white; margin-top:10px;">Сбросить 38 уровень</button>
-
-        resetLevels() {
-          if (confirm('Сбросить 38 уровень? Он будет перегенерирован как решаемый.')) {
-          delete this.state.savedLevels[38];
-          this.saveState();
-          alert('38 уровень сброшен. Перезагрузите игру!');
-    }
-},
         
         /* STATS & LEADERBOARD */
         #scr-stats, #scr-shop { padding: 20px; overflow-y: auto; }
@@ -206,6 +195,11 @@
             <button onclick="App.nav('stats')" style="padding:10px 20px; background:var(--c-blue); color:white; border:none; border-radius:10px; font-weight:bold;">Stats</button>
             <button onclick="App.nav('shop')" style="padding:10px 20px; background:var(--c-gold); color:white; border:none; border-radius:10px; font-weight:bold;">Shop</button>
         </div>
+        
+        <!-- Кнопка для ручного сброса проблемного уровня -->
+        <button id="fix-level-btn" onclick="App.fixProblemLevels()" style="margin-top:15px; padding:8px 15px; background:#ff6b6b; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none;">
+            🔧 Исправить уровни
+        </button>
     </div>
 
     <div id="scr-game" class="screen">
@@ -270,6 +264,7 @@
             <h2 style="color: var(--c-blue); margin-bottom: 20px;">Shop</h2>
             <div id="shop-content" style="text-align: center; padding: 40px 20px;">
                 <div style="font-size: 1.2rem; margin-bottom: 20px;">Shop will be available soon!</div>
+                <div style="color: #666;">Connect via Telegram for full features</div>
             </div>
         </div>
     </div>
@@ -285,10 +280,15 @@
                 <button class="l-btn" id="l-zh" onclick="App.setLang('zh')">ZH</button>
             </div>
         </div>
-        
         <div class="set-row" style="flex-direction: column; gap: 15px; align-items: flex-start;">
             <span>Telegram Status:</span>
             <div style="font-family: monospace; font-size: 0.9rem; color: #666;" id="tg-user-id">Not connected</div>
+        </div>
+        <div class="set-row">
+            <span>Fix Problem Levels</span>
+            <button onclick="App.fixProblemLevels()" style="padding:8px 15px; background:#ff6b6b; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer;">
+                🔧 Проверить и исправить
+            </button>
         </div>
     </div>
 
@@ -545,6 +545,9 @@ const App = {
         try {
             await this.loadState();
             
+            // === ВАЖНО: АВТОМАТИЧЕСКАЯ ПРОВЕРКА И ИСПРАВЛЕНИЕ УРОВНЕЙ ===
+            await this.autoFixProblemLevels();
+            
             if (this.isTelegram) {
                 this.initTelegramWebApp();
             }
@@ -567,7 +570,158 @@ const App = {
             
         } catch (e) {
             console.error('Error initializing app:', e);
+            // Даже при ошибке показываем интерфейс
+            this.updateUI();
         }
+    },
+
+    // ФУНКЦИЯ АВТОМАТИЧЕСКОГО ИСПРАВЛЕНИЯ УРОВНЕЙ
+    async autoFixProblemLevels() {
+        console.log('🔍 Автоматическая проверка уровней...');
+        
+        if (!this.state.savedLevels || typeof this.state.savedLevels !== 'object') {
+            console.log('✅ Нет сохраненных уровней для проверки');
+            this.state.savedLevels = {};
+            return;
+        }
+        
+        let fixedCount = 0;
+        const problematicLevels = [];
+        
+        // Проверяем все сохраненные уровни
+        for (const [levelStr, arrows] of Object.entries(this.state.savedLevels)) {
+            try {
+                const level = parseInt(levelStr);
+                
+                // Проверяем валидность данных уровня
+                if (!Array.isArray(arrows) || arrows.length === 0) {
+                    console.log(`⚠️ Уровень ${level}: невалидные данные, перегенерируем...`);
+                    this.state.savedLevels[level] = this.generateRobust(level, this.getBoardSizeForLevel(level));
+                    fixedCount++;
+                    problematicLevels.push(level);
+                    continue;
+                }
+                
+                const boardSize = this.getBoardSizeForLevel(level);
+                
+                // Проверяем решаемость
+                if (!this.isSolvable(arrows, boardSize)) {
+                    console.log(`⚠️ Уровень ${level}: нерешаем, исправляем...`);
+                    this.state.savedLevels[level] = this.generateRobust(level, boardSize);
+                    fixedCount++;
+                    problematicLevels.push(level);
+                }
+                
+                // Дополнительная проверка: каждая стрелка должна иметь все необходимые поля
+                const validArrows = arrows.filter(arrow => 
+                    arrow && 
+                    typeof arrow.x === 'number' && 
+                    typeof arrow.y === 'number' && 
+                    ['R', 'L', 'U', 'D'].includes(arrow.dir)
+                );
+                
+                if (validArrows.length !== arrows.length) {
+                    console.log(`⚠️ Уровень ${level}: поврежденные стрелки, исправляем...`);
+                    this.state.savedLevels[level] = this.generateRobust(level, boardSize);
+                    fixedCount++;
+                    problematicLevels.push(level);
+                }
+                
+            } catch (error) {
+                console.error(`❌ Ошибка проверки уровня ${levelStr}:`, error);
+                // Если ошибка - перегенерируем уровень
+                const level = parseInt(levelStr);
+                this.state.savedLevels[level] = this.generateRobust(level, this.getBoardSizeForLevel(level));
+                fixedCount++;
+                problematicLevels.push(level);
+            }
+        }
+        
+        if (fixedCount > 0) {
+            console.log(`✅ Исправлено ${fixedCount} уровней: ${problematicLevels.join(', ')}`);
+            await this.saveState();
+            
+            // Показываем кнопку фикса
+            const fixBtn = document.getElementById('fix-level-btn');
+            if (fixBtn) {
+                fixBtn.style.display = 'block';
+                fixBtn.textContent = `🔧 Исправлено ${fixedCount} уровней`;
+                setTimeout(() => {
+                    fixBtn.style.display = 'none';
+                }, 5000);
+            }
+        } else {
+            console.log('✅ Все уровни в порядке!');
+        }
+    },
+
+    // РУЧНАЯ ФУНКЦИЯ ИСПРАВЛЕНИЯ
+    async fixProblemLevels() {
+        if (confirm('Проверить и исправить все проблемные уровни?\n\nЭто исправит нерешаемые уровни, включая 38-й.')) {
+            console.log('🛠 Ручная проверка уровней...');
+            
+            const oldMaxLvl = this.state.maxLvl;
+            await this.autoFixProblemLevels();
+            
+            alert(`✅ Уровни проверены и исправлены!\n\nМаксимальный уровень сохранен: ${oldMaxLvl}`);
+            
+            // Перезагружаем текущий уровень если он был исправлен
+            if (this.state.savedLevels[this.curNum]) {
+                this.loadLvl(this.curNum);
+            }
+        }
+    },
+
+    // УЛУЧШЕННАЯ ГЕНЕРАЦИЯ С МАКСИМАЛЬНОЙ ЗАЩИТОЙ
+    generateRobust(lvl, boardSize) {
+        console.log(`🔧 Генерация уровня ${lvl} с защитой от ошибок...`);
+        
+        let attempts = 0;
+        const maxAttempts = 50;
+        
+        while (attempts < maxAttempts) {
+            attempts++;
+            
+            try {
+                const arrows = this.generateGuaranteedSolvable(lvl, boardSize);
+                
+                // Двойная проверка
+                if (!Array.isArray(arrows) || arrows.length < 6) {
+                    console.log(`Попытка ${attempts}: недостаточно стрелок`);
+                    continue;
+                }
+                
+                if (!this.isSolvable(arrows, boardSize)) {
+                    console.log(`Попытка ${attempts}: уровень нерешаем`);
+                    continue;
+                }
+                
+                // Проверяем каждую стрелку
+                let allArrowsValid = true;
+                for (const arrow of arrows) {
+                    if (!arrow || typeof arrow.x !== 'number' || typeof arrow.y !== 'number' || 
+                        !['R', 'L', 'U', 'D'].includes(arrow.dir)) {
+                        allArrowsValid = false;
+                        break;
+                    }
+                }
+                
+                if (!allArrowsValid) {
+                    console.log(`Попытка ${attempts}: невалидные стрелки`);
+                    continue;
+                }
+                
+                console.log(`✅ Уровень ${lvl} успешно сгенерирован за ${attempts} попыток`);
+                return arrows;
+                
+            } catch (error) {
+                console.error(`Ошибка генерации уровня ${lvl}, попытка ${attempts}:`, error);
+            }
+        }
+        
+        // Если не удалось сгенерировать - используем гарантированную конфигурацию
+        console.log(`⚠️ Не удалось сгенерировать уровень ${lvl}, используем гарантированную конфигурацию`);
+        return this.generateFallbackLevel(lvl, boardSize);
     },
 
     async loadState() {
@@ -576,7 +730,19 @@ const App = {
             const localData = localStorage.getItem(this.storageKey);
             if (localData) {
                 const saved = JSON.parse(localData);
-                this.state = { ...this.state, ...saved };
+                
+                // Восстанавливаем структуру если она повреждена
+                this.state = { 
+                    ...this.state, 
+                    ...saved,
+                    savedLevels: saved.savedLevels || {},
+                    maxLvl: saved.maxLvl || 1,
+                    lives: saved.lives || 3,
+                    coins: saved.coins || 0,
+                    lang: saved.lang || 'ru',
+                    sound: saved.sound !== undefined ? saved.sound : true,
+                    vib: saved.vib !== undefined ? saved.vib : true
+                };
                 console.log('✅ Loaded from localStorage:', this.state);
                 return;
             }
@@ -596,6 +762,11 @@ const App = {
             }
         } catch (e) {
             console.error('❌ Error loading state:', e);
+            // Сбрасываем к начальным значениям при ошибке
+            this.state.savedLevels = {};
+            this.state.maxLvl = 1;
+            this.state.lives = 3;
+            this.state.coins = 0;
         }
     },
 
@@ -857,65 +1028,73 @@ const App = {
     },
 
     updateUI() {
-        const t = GAME_TEXTS[this.state.lang];
-        const livesCount = document.getElementById('lives-count');
-        const coinsCount = document.getElementById('coins-count');
-        const lvlLabel = document.getElementById('lvl-label');
-        
-        if (livesCount) livesCount.innerText = this.state.lives;
-        if (coinsCount) coinsCount.innerText = this.state.coins;
-        if (lvlLabel) lvlLabel.innerText = `${t.level} ${this.state.maxLvl}`;
-        
-        const togSound = document.getElementById('tog-sound');
-        const togVib = document.getElementById('tog-vib');
-        if (togSound) togSound.classList.toggle('on', this.state.sound);
-        if (togVib) togVib.classList.toggle('on', this.state.vib);
+        try {
+            const t = GAME_TEXTS[this.state.lang];
+            const livesCount = document.getElementById('lives-count');
+            const coinsCount = document.getElementById('coins-count');
+            const lvlLabel = document.getElementById('lvl-label');
+            
+            if (livesCount) livesCount.innerText = this.state.lives;
+            if (coinsCount) coinsCount.innerText = this.state.coins;
+            if (lvlLabel) lvlLabel.innerText = `${t.level} ${this.state.maxLvl}`;
+            
+            const togSound = document.getElementById('tog-sound');
+            const togVib = document.getElementById('tog-vib');
+            if (togSound) togSound.classList.toggle('on', this.state.sound);
+            if (togVib) togVib.classList.toggle('on', this.state.vib);
 
-        document.querySelectorAll('.l-btn').forEach(b => {
-            if (b.id === 'l-'+this.state.lang) b.classList.add('active');
-            else b.classList.remove('active');
-        });
-        
-        // Обновляем тексты кнопок
-        document.querySelectorAll('button').forEach(btn => {
-            const text = btn.innerText;
-            if (text === 'Stats' || text === 'Статистика' || text === '统计') {
-                btn.innerText = t.stats;
-            } else if (text === 'Shop' || text === 'Магазин' || text === '商店') {
-                btn.innerText = t.shop;
-            } else if (text === 'Connect Telegram' || text === 'Подключить Telegram' || text === '连接Telegram') {
-                btn.innerText = t.connect;
+            document.querySelectorAll('.l-btn').forEach(b => {
+                if (b.id === 'l-'+this.state.lang) b.classList.add('active');
+                else b.classList.remove('active');
+            });
+            
+            // Обновляем тексты кнопок
+            document.querySelectorAll('button').forEach(btn => {
+                const text = btn.innerText;
+                if (text === 'Stats' || text === 'Статистика' || text === '统计') {
+                    btn.innerText = t.stats;
+                } else if (text === 'Shop' || text === 'Магазин' || text === '商店') {
+                    btn.innerText = t.shop;
+                } else if (text === 'Connect Telegram' || text === 'Подключить Telegram' || text === '连接Telegram') {
+                    btn.innerText = t.connect;
+                }
+            });
+            
+            // Обновляем описание цели игры
+            const goalDiv = document.querySelector('#scr-home div[style*="max-width: 300px"]');
+            if (goalDiv) {
+                const goalTitle = goalDiv.querySelector('div[style*="font-weight: bold"]');
+                const goalDesc = goalDiv.querySelector('div[style*="color: #666"]');
+                if (goalTitle) goalTitle.innerText = t.goal;
+                if (goalDesc) goalDesc.innerText = t.goalDesc;
             }
-        });
-        
-        // Обновляем описание цели игры
-        const goalDiv = document.querySelector('#scr-home div[style*="max-width: 300px"]');
-        if (goalDiv) {
-            const goalTitle = goalDiv.querySelector('div[style*="font-weight: bold"]');
-            const goalDesc = goalDiv.querySelector('div[style*="color: #666"]');
-            if (goalTitle) goalTitle.innerText = t.goal;
-            if (goalDesc) goalDesc.innerText = t.goalDesc;
+        } catch (error) {
+            console.error('Error updating UI:', error);
         }
     },
 
     nav(scr) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        const screen = document.getElementById('scr-' + scr);
-        if (screen) screen.classList.add('active');
-        
-        const mainHeader = document.getElementById('main-header');
-        if (mainHeader) mainHeader.style.visibility = (scr === 'home' || scr === 'game') ? 'visible' : 'hidden';
-        
-        const btnBack = document.getElementById('btn-back');
-        if (btnBack) btnBack.style.display = (scr === 'game') ? 'block' : 'none';
-        
-        document.querySelectorAll('.nav-icon').forEach(i => i.classList.toggle('active', i.id === 'n-'+scr));
-        if(scr !== 'win') Confetti.stop();
-        if(scr === 'map') this.renderMap();
-        if(scr === 'stats') this.showStatsScreen();
-        
-        const boardZone = document.querySelector('.board-zone');
-        if (boardZone) boardZone.classList.remove('error-shake');
+        try {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            const screen = document.getElementById('scr-' + scr);
+            if (screen) screen.classList.add('active');
+            
+            const mainHeader = document.getElementById('main-header');
+            if (mainHeader) mainHeader.style.visibility = (scr === 'home' || scr === 'game') ? 'visible' : 'hidden';
+            
+            const btnBack = document.getElementById('btn-back');
+            if (btnBack) btnBack.style.display = (scr === 'game') ? 'block' : 'none';
+            
+            document.querySelectorAll('.nav-icon').forEach(i => i.classList.toggle('active', i.id === 'n-'+scr));
+            if(scr !== 'win') Confetti.stop();
+            if(scr === 'map') this.renderMap();
+            if(scr === 'stats') this.showStatsScreen();
+            
+            const boardZone = document.querySelector('.board-zone');
+            if (boardZone) boardZone.classList.remove('error-shake');
+        } catch (error) {
+            console.error('Error in nav:', error);
+        }
     },
 
     async showStatsScreen() {
@@ -1011,7 +1190,14 @@ const App = {
         }, 50);
     },
 
-    nextLvl() { this.play(this.curNum + 1); },
+    nextLvl() { 
+        try {
+            this.play(this.curNum + 1); 
+        } catch (error) {
+            console.error('Error in nextLvl:', error);
+            this.nav('home');
+        }
+    },
 
     getBoardSizeForLevel(level) {
         if (level <= 10) return 5;
@@ -1030,68 +1216,74 @@ const App = {
     },
 
     loadLvl(n) {
-        console.log(`Loading level ${n}, isTelegram: ${this.isTelegram}`);
-        
-        const b = document.getElementById('board');
-        if (!b) {
-            console.error('Board element not found!');
-            return;
-        }
-        
-        b.innerHTML = '';
-        
-        this.boardSize = this.getBoardSizeForLevel(n);
-        
-        const boardContainer = document.querySelector('.board-zone');
-        if (!boardContainer) return;
-        
-        let containerWidth = Math.min(boardContainer.offsetWidth, boardContainer.offsetHeight);
-        if (containerWidth === 0) {
-            containerWidth = Math.min(window.innerWidth, window.innerHeight) - 40;
-        }
+        try {
+            console.log(`Loading level ${n}, isTelegram: ${this.isTelegram}`);
+            
+            const b = document.getElementById('board');
+            if (!b) {
+                console.error('Board element not found!');
+                return;
+            }
+            
+            b.innerHTML = '';
+            
+            this.boardSize = this.getBoardSizeForLevel(n);
+            
+            const boardContainer = document.querySelector('.board-zone');
+            if (!boardContainer) return;
+            
+            let containerWidth = Math.min(boardContainer.offsetWidth, boardContainer.offsetHeight);
+            if (containerWidth === 0) {
+                containerWidth = Math.min(window.innerWidth, window.innerHeight) - 40;
+            }
 
-        const boardPixelSize = Math.min(containerWidth - 40, 400);
-        
-        b.style.width = boardPixelSize + 'px';
-        b.style.height = boardPixelSize + 'px';
-        b.style.display = 'block';
-        b.style.visibility = 'visible';
-        
-        this.addGridLines(b, boardPixelSize);
-        
-        const cellSize = boardPixelSize / this.boardSize;
-        const arrowSize = Math.min(cellSize * 0.85, this.getArrowSizeForLevel(n, this.boardSize));
-        
-        if(!this.state.savedLevels[n]) {
-            this.state.savedLevels[n] = this.generate(n, this.boardSize);
-            this.saveState();
+            const boardPixelSize = Math.min(containerWidth - 40, 400);
+            
+            b.style.width = boardPixelSize + 'px';
+            b.style.height = boardPixelSize + 'px';
+            b.style.display = 'block';
+            b.style.visibility = 'visible';
+            
+            this.addGridLines(b, boardPixelSize);
+            
+            const cellSize = boardPixelSize / this.boardSize;
+            const arrowSize = Math.min(cellSize * 0.85, this.getArrowSizeForLevel(n, this.boardSize));
+            
+            if(!this.state.savedLevels[n]) {
+                this.state.savedLevels[n] = this.generateRobust(n, this.boardSize);
+                this.saveState();
+            }
+            
+            const data = this.state.savedLevels[n];
+            console.log(`Level ${n} has ${data.length} arrows`);
+            
+            data.forEach(a => {
+                a.solved = false;
+            });
+            
+            data.forEach(a => {
+                const wrap = document.createElement('div');
+                wrap.className = 'arrow-box'; 
+                wrap.style.width = wrap.style.height = arrowSize + 'px';
+                wrap.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px'; 
+                wrap.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
+                
+                const track = Geo.getTrackForDirection(a.dir, arrowSize);
+                const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
+                
+                wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
+                    <path class="p-line" d="${initialPath.d}" />
+                    <polygon class="p-head" points="-6,-6 6,0 -6,6" transform="translate(${initialPath.head.x},${initialPath.head.y}) rotate(${initialPath.head.angle})"/>
+                </svg>`;
+                
+                wrap.onclick = () => this.move(a, wrap, arrowSize);
+                b.appendChild(wrap);
+            });
+        } catch (error) {
+            console.error('Error loading level:', error);
+            alert('Ошибка загрузки уровня. Попробуйте еще раз.');
+            this.nav('home');
         }
-        
-        const data = this.state.savedLevels[n];
-        console.log(`Level ${n} has ${data.length} arrows`);
-        
-        data.forEach(a => {
-            a.solved = false;
-        });
-        
-        data.forEach(a => {
-            const wrap = document.createElement('div');
-            wrap.className = 'arrow-box'; 
-            wrap.style.width = wrap.style.height = arrowSize + 'px';
-            wrap.style.left = (a.x * cellSize + (cellSize - arrowSize) / 2) + 'px'; 
-            wrap.style.top = (a.y * cellSize + (cellSize - arrowSize) / 2) + 'px';
-            
-            const track = Geo.getTrackForDirection(a.dir, arrowSize);
-            const initialPath = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
-            
-            wrap.innerHTML = `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
-                <path class="p-line" d="${initialPath.d}" />
-                <polygon class="p-head" points="-6,-6 6,0 -6,6" transform="translate(${initialPath.head.x},${initialPath.head.y}) rotate(${initialPath.head.angle})"/>
-            </svg>`;
-            
-            wrap.onclick = () => this.move(a, wrap, arrowSize);
-            b.appendChild(wrap);
-        });
     },
 
     addGridLines(board, boardSize) {
@@ -1116,12 +1308,9 @@ const App = {
         }
     },
 
-    // ГЕНЕРАЦИЯ ГАРАНТИРОВАННО РЕШАЕМЫХ УРОВНЕЙ
+    // ОСНОВНАЯ ФУНКЦИЯ ГЕНЕРАЦИИ
     generate(lvl, boardSize) {
-        console.log(`Генерация уровня ${lvl} (размер ${boardSize}x${boardSize})`);
-        
-        // Для ВСЕХ уровней используем гарантированно решаемую генерацию
-        return this.generateGuaranteedSolvable(lvl, boardSize);
+        return this.generateRobust(lvl, boardSize);
     },
 
     // ГЕНЕРАЦИЯ ГАРАНТИРОВАННО РЕШАЕМЫХ УРОВНЕЙ
@@ -1163,8 +1352,6 @@ const App = {
         targetCount = Math.min(targetCount, baseCells - 2);
         targetCount = Math.max(6, targetCount);
         
-        console.log(`Целевое количество стрелок: ${targetCount}`);
-        
         // Создаем карту занятых позиций
         const occupied = new Set();
         const getKey = (x, y) => `${x},${y}`;
@@ -1178,16 +1365,16 @@ const App = {
             for (const arrow of arrows) {
                 // Если стрелки на одной линии и направлены навстречу или пересекаются
                 if (dir.id === 'R' && arrow.dir === 'L' && y === arrow.y && x < arrow.x) {
-                    return false; // Стрелка R смотрит на стрелку L слева
+                    return false;
                 }
                 if (dir.id === 'L' && arrow.dir === 'R' && y === arrow.y && x > arrow.x) {
-                    return false; // Стрелка L смотрит на стрелку R справа
+                    return false;
                 }
                 if (dir.id === 'U' && arrow.dir === 'D' && x === arrow.x && y > arrow.y) {
-                    return false; // Стрелка U смотрит на стрелку D снизу
+                    return false;
                 }
                 if (dir.id === 'D' && arrow.dir === 'U' && x === arrow.x && y < arrow.y) {
-                    return false; // Стрелка D смотрит на стрелку U сверху
+                    return false;
                 }
                 
                 // Проверяем столкновения
@@ -1259,88 +1446,11 @@ const App = {
             }
         }
         
-        // Если не удалось разместить достаточно стрелок, добавляем безопасные
-        if (placedCount < 6) {
-            console.log(`Не удалось разместить достаточно стрелок, добавляем безопасные...`);
-            return this.addSafeArrows(placedCount, targetCount, boardSize, arrows, occupied);
-        }
-        
-        // Проверяем решаемость
-        if (!this.isSolvable(arrows, boardSize)) {
-            console.log(`Уровень ${lvl} нерешаем, перестраиваем...`);
-            return this.buildSolvableLevel(lvl, boardSize);
-        }
-        
-        console.log(`Уровень ${lvl} успешно сгенерирован: ${arrows.length} стрелок`);
         return arrows;
     },
 
-    // ДОБАВЛЕНИЕ БЕЗОПАСНЫХ СТРЕЛОК
-    addSafeArrows(currentCount, targetCount, boardSize, existingArrows, occupied) {
-        const arrows = [...existingArrows];
-        const directions = [
-            {id:'R', x:1, y:0}, 
-            {id:'L', x:-1, y:0}, 
-            {id:'U', x:0, y:-1}, 
-            {id:'D', x:0, y:1}
-        ];
-        
-        const getKey = (x, y) => `${x},${y}`;
-        
-        // Безопасные позиции - углы, указывающие наружу
-        const safePositions = [
-            {x: 0, y: 0, dir: directions[0]}, // Верхний левый -> вправо
-            {x: 0, y: 0, dir: directions[3]}, // Верхний левый -> вниз
-            {x: boardSize-1, y: 0, dir: directions[1]}, // Верхний правый -> влево
-            {x: boardSize-1, y: 0, dir: directions[3]}, // Верхний правый -> вниз
-            {x: 0, y: boardSize-1, dir: directions[0]}, // Нижний левый -> вправо
-            {x: 0, y: boardSize-1, dir: directions[2]}, // Нижний левый -> вверх
-            {x: boardSize-1, y: boardSize-1, dir: directions[1]}, // Нижний правый -> влево
-            {x: boardSize-1, y: boardSize-1, dir: directions[2]}  // Нижний правый -> вверх
-        ];
-        
-        for (const pos of safePositions) {
-            if (currentCount >= targetCount) break;
-            
-            const key = getKey(pos.x, pos.y);
-            if (!occupied.has(key)) {
-                // Проверяем, не сталкивается ли с существующими
-                let safe = true;
-                for (const arrow of arrows) {
-                    if (this.checkCollision(
-                        {x: pos.x, y: pos.y, dx: pos.dir.x, dy: pos.dir.y},
-                        arrow,
-                        boardSize
-                    )) {
-                        safe = false;
-                        break;
-                    }
-                }
-                
-                if (safe) {
-                    arrows.push({
-                        id: currentCount,
-                        x: pos.x,
-                        y: pos.y,
-                        dir: pos.dir.id,
-                        dx: pos.dir.x,
-                        dy: pos.dir.y,
-                        solved: false
-                    });
-                    
-                    occupied.add(key);
-                    currentCount++;
-                }
-            }
-        }
-        
-        return arrows;
-    },
-
-    // ПОСТРОЕНИЕ ГАРАНТИРОВАННО РЕШАЕМОГО УРОВНЯ
-    buildSolvableLevel(lvl, boardSize) {
-        console.log(`Строим гарантированно решаемый уровень ${lvl}`);
-        
+    // ЗАПАСНАЯ ГЕНЕРАЦИЯ
+    generateFallbackLevel(lvl, boardSize) {
         const arrows = [];
         const directions = [
             {id:'R', x:1, y:0}, 
@@ -1349,7 +1459,6 @@ const App = {
             {id:'D', x:0, y:1}
         ];
         
-        // Базовая решаемая конфигурация
         let idCounter = 0;
         
         // УГЛЫ (всегда безопасны)
@@ -1360,71 +1469,23 @@ const App = {
             arrows.push({id: idCounter++, x: boardSize-1, y: boardSize-1, dir: 'L', dx: -1, dy: 0, solved: false});
         }
         
-        // КРАЯ (вертикальные)
-        if (boardSize > 3) {
-            const edgeCount = Math.min(2, Math.floor(boardSize / 2) - 1);
-            for (let i = 1; i <= edgeCount; i++) {
-                arrows.push({id: idCounter++, x: 0, y: i, dir: 'R', dx: 1, dy: 0, solved: false});
-                arrows.push({id: idCounter++, x: boardSize-1, y: boardSize-1-i, dir: 'L', dx: -1, dy: 0, solved: false});
-            }
+        // Простые стрелки в центре
+        if (boardSize >= 3) {
+            const center = Math.floor(boardSize / 2);
+            arrows.push({id: idCounter++, x: center, y: 1, dir: 'D', dx: 0, dy: 1, solved: false});
+            arrows.push({id: idCounter++, x: boardSize-2, y: center, dir: 'L', dx: -1, dy: 0, solved: false});
         }
         
-        // КРАЯ (горизонтальные)
-        if (boardSize > 3) {
-            const edgeCount = Math.min(2, Math.floor(boardSize / 2) - 1);
-            for (let i = 1; i <= edgeCount; i++) {
-                arrows.push({id: idCounter++, x: i, y: 0, dir: 'D', dx: 0, dy: 1, solved: false});
-                arrows.push({id: idCounter++, x: boardSize-1-i, y: boardSize-1, dir: 'U', dx: 0, dy: -1, solved: false});
-            }
-        }
-        
-        // ЦЕНТР (если нужно больше стрелок)
-        const currentCount = arrows.length;
-        const targetCount = 6 + Math.floor(lvl / 3);
-        
-        if (currentCount < targetCount && boardSize >= 4) {
-            const centerX = Math.floor(boardSize / 2);
-            const centerY = Math.floor(boardSize / 2);
-            
-            const centerPositions = [
-                {x: centerX, y: centerY-1, dir: 'U'},
-                {x: centerX, y: centerY+1, dir: 'D'},
-                {x: centerX-1, y: centerY, dir: 'L'},
-                {x: centerX+1, y: centerY, dir: 'R'}
-            ];
-            
-            for (const pos of centerPositions) {
-                if (arrows.length >= targetCount) break;
-                
-                if (pos.x >= 0 && pos.x < boardSize && pos.y >= 0 && pos.y < boardSize) {
-                    const existing = arrows.find(a => a.x === pos.x && a.y === pos.y);
-                    if (!existing) {
-                        const d = directions.find(d => d.id === pos.dir);
-                        arrows.push({
-                            id: idCounter++,
-                            x: pos.x,
-                            y: pos.y,
-                            dir: pos.dir,
-                            dx: d.x,
-                            dy: d.y,
-                            solved: false
-                        });
-                    }
-                }
-            }
-        }
-        
-        console.log(`Построен гарантированно решаемый уровень ${lvl}: ${arrows.length} стрелок`);
+        console.log(`✅ Запасной уровень ${lvl} сгенерирован: ${arrows.length} стрелок`);
         return arrows;
     },
 
     // УЛУЧШЕННАЯ ПРОВЕРКА РЕШАЕМОСТИ
     isSolvable(arrows, boardSize) {
-        if (arrows.length === 0) return true;
+        if (!Array.isArray(arrows) || arrows.length === 0) return true;
         
         // Создаем копию стрелок
         const remaining = arrows.map(a => ({...a}));
-        const removed = [];
         let changed = true;
         
         while (remaining.length > 0 && changed) {
@@ -1454,7 +1515,6 @@ const App = {
             if (toRemove.length > 0) {
                 toRemove.sort((a, b) => b - a);
                 for (const index of toRemove) {
-                    removed.push(remaining[index]);
                     remaining.splice(index, 1);
                 }
                 changed = true;
@@ -1464,9 +1524,7 @@ const App = {
         const solvable = remaining.length === 0;
         
         if (!solvable) {
-            console.log(`Уровень нерешаем! Осталось стрелок: ${remaining.length}`);
-        } else {
-            console.log(`Уровень решаем! Порядок удаления: ${removed.length} шагов`);
+            console.log(`⚠️ Уровень нерешаем! Осталось стрелок: ${remaining.length}`);
         }
         
         return solvable;
@@ -1476,122 +1534,136 @@ const App = {
         if(this.busy) return;
         this.busy = true;
         
-        const data = this.state.savedLevels[this.curNum];
-        let hit = data.find(o => !o.solved && o.id !== a.id && this.checkCollision(a, o, this.boardSize));
-        
-        const svg = el.querySelector('.arrow-svg');
-        const line = el.querySelector('.p-line');
-        const head = el.querySelector('.p-head');
-        const track = Geo.getTrackForDirection(a.dir, arrowSize);
-        const duration = hit ? 300 : 400;
-        
-        if(!hit) { 
-            this.playAudio('win'); 
-            this.vibrate('win'); 
-        }
-        
-        let startTime = null;
-        const animateStep = (time) => {
-            if (!startTime) startTime = time;
-            let p = (time - startTime) / duration;
-            if (p > 1) p = 1;
-
-            let distFactor;
-            if (hit) {
-                distFactor = p * arrowSize * 0.5;
-                if(p >= 0.4 && !this.hasHitSound) {
-                    this.hasHitSound = true;
-                    this.playAudio('err'); 
-                    this.vibrate('err');
-                    el.classList.add('error-arr');
-                    document.querySelector('.board-zone').classList.add('error-shake');
-                    setTimeout(() => {
-                        document.querySelector('.board-zone').classList.remove('error-shake');
-                        el.classList.remove('error-arr');
-                    }, 500);
-                }
-            } else {
-                distFactor = p * arrowSize * 10;
+        try {
+            const data = this.state.savedLevels[this.curNum];
+            let hit = data.find(o => !o.solved && o.id !== a.id && this.checkCollision(a, o, this.boardSize));
+            
+            const svg = el.querySelector('.arrow-svg');
+            const line = el.querySelector('.p-line');
+            const head = el.querySelector('.p-head');
+            const track = Geo.getTrackForDirection(a.dir, arrowSize);
+            const duration = hit ? 300 : 400;
+            
+            if(!hit) { 
+                this.playAudio('win'); 
+                this.vibrate('win'); 
             }
+            
+            let startTime = null;
+            const animateStep = (time) => {
+                if (!startTime) startTime = time;
+                let p = (time - startTime) / duration;
+                if (p > 1) p = 1;
 
-            const currentHeadDist = arrowSize * 0.4 + distFactor;
-            const currentTailDist = currentHeadDist - arrowSize * 0.4;
-            const seg = Geo.getSegmentPath(track, currentTailDist, currentHeadDist);
-            
-            line.setAttribute('d', seg.d);
-            head.setAttribute('transform', `translate(${seg.head.x},${seg.head.y}) rotate(${seg.head.angle})`);
-            
-            if (p < 1) {
-                requestAnimationFrame(animateStep);
-            } else {
-                this.busy = false;
-                this.hasHitSound = false;
-                
+                let distFactor;
                 if (hit) {
-                    const resetSeg = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
-                    line.setAttribute('d', resetSeg.d);
-                    head.setAttribute('transform', `translate(${resetSeg.head.x},${resetSeg.head.y}) rotate(${resetSeg.head.angle})`);
-                    this.loseLife();
+                    distFactor = p * arrowSize * 0.5;
+                    if(p >= 0.4 && !this.hasHitSound) {
+                        this.hasHitSound = true;
+                        this.playAudio('err'); 
+                        this.vibrate('err');
+                        el.classList.add('error-arr');
+                        document.querySelector('.board-zone').classList.add('error-shake');
+                        setTimeout(() => {
+                            document.querySelector('.board-zone').classList.remove('error-shake');
+                            el.classList.remove('error-arr');
+                        }, 500);
+                    }
                 } else {
-                    el.style.opacity = '0';
-                    a.solved = true;
+                    distFactor = p * arrowSize * 10;
+                }
+
+                const currentHeadDist = arrowSize * 0.4 + distFactor;
+                const currentTailDist = currentHeadDist - arrowSize * 0.4;
+                const seg = Geo.getSegmentPath(track, currentTailDist, currentHeadDist);
+                
+                line.setAttribute('d', seg.d);
+                head.setAttribute('transform', `translate(${seg.head.x},${seg.head.y}) rotate(${seg.head.angle})`);
+                
+                if (p < 1) {
+                    requestAnimationFrame(animateStep);
+                } else {
+                    this.busy = false;
+                    this.hasHitSound = false;
                     
-                    this.saveState();
-                    
-                    if(data.every(x => x.solved)) {
-                        setTimeout(() => this.showWin(), 300);
+                    if (hit) {
+                        const resetSeg = Geo.getSegmentPath(track, 0, arrowSize * 0.4);
+                        line.setAttribute('d', resetSeg.d);
+                        head.setAttribute('transform', `translate(${resetSeg.head.x},${resetSeg.head.y}) rotate(${resetSeg.head.angle})`);
+                        this.loseLife();
+                    } else {
+                        el.style.opacity = '0';
+                        a.solved = true;
+                        
+                        this.saveState();
+                        
+                        if(data.every(x => x.solved)) {
+                            setTimeout(() => this.showWin(), 300);
+                        }
                     }
                 }
-            }
-        };
-        
-        this.hasHitSound = false;
-        requestAnimationFrame(animateStep);
+            };
+            
+            this.hasHitSound = false;
+            requestAnimationFrame(animateStep);
+        } catch (error) {
+            console.error('Error in move:', error);
+            this.busy = false;
+        }
     },
 
     showWin() {
-        const coinsEarned = 20;
-        this.state.coins += coinsEarned;
-        if(this.curNum === this.state.maxLvl) this.state.maxLvl++;
-        
-        this.saveState();
-        
-        this.updateUI();
-        
-        if (this.state.tgConnected) {
-            this.updateScore();
+        try {
+            const coinsEarned = 20;
+            this.state.coins += coinsEarned;
+            if(this.curNum === this.state.maxLvl) this.state.maxLvl++;
+            
+            this.saveState();
+            
+            this.updateUI();
+            
+            if (this.state.tgConnected) {
+                this.updateScore();
+            }
+            
+            this.showCoinsAnimation(coinsEarned);
+            const arr = this.praise[this.state.lang];
+            const txt = arr[Math.floor(Math.random() * arr.length)];
+            const title = document.getElementById('win-msg');
+            title.innerText = txt;
+            title.classList.remove('show');
+            document.getElementById('coins-earned-amount').innerText = coinsEarned;
+            
+            // Обновляем тексты кнопок на экране победы
+            const t = GAME_TEXTS[this.state.lang];
+            const btnMenu = document.getElementById('btn-win-menu');
+            const btnNext = document.getElementById('btn-win-next');
+            if (btnMenu) btnMenu.innerText = t.menu;
+            if (btnNext) btnNext.innerText = t.next;
+            
+            this.nav('win');
+            setTimeout(() => {
+                this.playAudio('victory');
+                this.vibrate('victory');
+                Confetti.start();
+                title.classList.add('show');
+            }, 100);
+        } catch (error) {
+            console.error('Error in showWin:', error);
+            this.nav('home');
         }
-        
-        this.showCoinsAnimation(coinsEarned);
-        const arr = this.praise[this.state.lang];
-        const txt = arr[Math.floor(Math.random() * arr.length)];
-        const title = document.getElementById('win-msg');
-        title.innerText = txt;
-        title.classList.remove('show');
-        document.getElementById('coins-earned-amount').innerText = coinsEarned;
-        
-        // Обновляем тексты кнопок на экране победы
-        const t = GAME_TEXTS[this.state.lang];
-        const btnMenu = document.getElementById('btn-win-menu');
-        const btnNext = document.getElementById('btn-win-next');
-        if (btnMenu) btnMenu.innerText = t.menu;
-        if (btnNext) btnNext.innerText = t.next;
-        
-        this.nav('win');
-        setTimeout(() => {
-            this.playAudio('victory');
-            this.vibrate('victory');
-            Confetti.start();
-            title.classList.add('show');
-        }, 100);
     },
 
     showCoinsAnimation(amount) {
-        const anim = document.createElement('div');
-        anim.className = 'coins-animation';
-        anim.innerHTML = `+${amount} <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/></svg>`;
-        document.getElementById('app').appendChild(anim);
-        setTimeout(() => { anim.remove(); }, 1000);
+        try {
+            const anim = document.createElement('div');
+            anim.className = 'coins-animation';
+            anim.innerHTML = `+${amount} <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/></svg>`;
+            document.getElementById('app').appendChild(anim);
+            setTimeout(() => { anim.remove(); }, 1000);
+        } catch (error) {
+            console.error('Error in showCoinsAnimation:', error);
+        }
     },
 
     checkCollision(a, o, boardSize) {
