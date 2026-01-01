@@ -573,7 +573,7 @@ const GAME_TEXTS = {
     }
 };
 
-// Глобальные данные скинов
+// Глобальные данные скинов (удалены rainbow и neon)
 const SKINS_DATA = {
     "default": {
         "id": "default",
@@ -622,22 +622,6 @@ const SKINS_DATA = {
         "primary_color": "#FFD700",
         "arrow_color": "#FFD700",
         "head_shape": "royal"
-    },
-    "neon": {
-        "id": "neon",
-        "name": "Neon",
-        "price": 8000,
-        "primary_color": "#00FF00",
-        "arrow_color": "#FF00FF",
-        "head_shape": "tech"
-    },
-    "rainbow": {
-        "id": "rainbow",
-        "name": "Rainbow",
-        "price": 10000,
-        "primary_color": "#FF1493",
-        "arrow_color": "url(#rainbowGradient)",
-        "head_shape": "magic"
     }
 };
 
@@ -1530,7 +1514,6 @@ const App = {
             const currentSkin = this.state.shopItems.find(s => s.id === this.state.selectedSkin) || 
                               SKINS_DATA[this.state.selectedSkin] || SKINS_DATA.default;
             const arrowColor = currentSkin.arrow_color || '#003366';
-            const isRainbow = arrowColor.includes('rainbowGradient');
             
             data.forEach(a => {
                 a.solved = false;
@@ -1548,7 +1531,7 @@ const App = {
                 
                 // Создаем SVG с учетом скина (передаем уникальный ID для градиента)
                 const uniqueId = a.id || `arrow_${Math.random().toString(36).substr(2, 9)}`;
-                const svgContent = this.createArrowSVG(arrowSize, initialPath, currentSkin, arrowColor, isRainbow, uniqueId);
+                const svgContent = this.createArrowSVG(arrowSize, initialPath, currentSkin, arrowColor, uniqueId);
                 
                 wrap.innerHTML = svgContent;
                 
@@ -1562,16 +1545,13 @@ const App = {
         }
     },
     
-    // Создание SVG стрелки с учетом скина (ИСПРАВЛЕНО для радужного скина)
-    createArrowSVG(arrowSize, path, skin, arrowColor, isRainbow, uniqueId = '') {
+    // Создание SVG стрелки с учетом скина (упрощено - без градиентов)
+    createArrowSVG(arrowSize, path, skin, arrowColor, uniqueId = '') {
         const headShape = skin.head_shape || 'default';
         
-        // Генерируем уникальный ID для градиента
-        const gradientId = uniqueId ? `rainbowGradient_${uniqueId}` : 'rainbowGradient';
-        
-        // Для радужного скина используем градиент
-        const strokeColor = isRainbow ? `url(#${gradientId})` : arrowColor;
-        const fillColor = isRainbow ? `url(#${gradientId})` : arrowColor;
+        // Используем цвет скина
+        const strokeColor = arrowColor;
+        const fillColor = arrowColor;
         
         let headSVG = '';
         switch(headShape) {
@@ -1592,38 +1572,11 @@ const App = {
             case 'royal':
                 headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" fill="${fillColor}" stroke="#FFA500" stroke-width="2"/>`;
                 break;
-            case 'tech':
-                headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" fill="${fillColor}"/>`;
-                break;
-            case 'magic':
-                // Для радужного скина не добавляем пульсирующий круг
-                if (isRainbow) {
-                    headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" fill="${fillColor}"/>`;
-                } else {
-                    headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" fill="${fillColor}"/>
-                              <circle cx="${path.head.x - 3}" cy="${path.head.y}" r="2" fill="white" opacity="0.8" transform="rotate(${path.head.angle} ${path.head.x} ${path.head.y})">
-                                  <animate attributeName="r" values="2;4;2" dur="1s" repeatCount="indefinite"/>
-                              </circle>`;
-                }
-                break;
             default:
                 headSVG = `<polygon class="p-head" points="-8,-8 8,0 -8,8" transform="translate(${path.head.x},${path.head.y}) rotate(${path.head.angle})" fill="${fillColor}"/>`;
         }
         
         return `<svg class="arrow-svg" viewBox="0 0 ${arrowSize} ${arrowSize}">
-            ${isRainbow ? `
-            <defs>
-                <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
-                    <stop offset="16.6%" style="stop-color:#ff7f00;stop-opacity:1" />
-                    <stop offset="33.3%" style="stop-color:#ffff00;stop-opacity:1" />
-                    <stop offset="50%" style="stop-color:#00ff00;stop-opacity:1" />
-                    <stop offset="66.6%" style="stop-color:#0000ff;stop-opacity:1" />
-                    <stop offset="83.3%" style="stop-color:#4b0082;stop-opacity:1" />
-                    <stop offset="100%" style="stop-color:#9400d3;stop-opacity:1" />
-                </linearGradient>
-            </defs>
-            ` : ''}
             <path class="p-line" d="${path.d}" stroke="${strokeColor}" />
             ${headSVG}
         </svg>`;
@@ -2149,9 +2102,20 @@ const App = {
             
             if (!data.success) throw new Error(data.error || 'Failed to load shop');
             
-            this.state.shopItems = data.skins || [];
+            // Фильтруем скины - удаляем neon и rainbow
+            const filteredSkins = (data.skins || []).filter(skin => 
+                skin.id !== 'neon' && skin.id !== 'rainbow'
+            );
+            
+            this.state.shopItems = filteredSkins;
             this.state.coins = data.user_coins || 0;
             this.state.selectedSkin = data.selected_skin || 'default';
+            
+            // Если выбранный скин был neon или rainbow, сбрасываем на default
+            if (this.state.selectedSkin === 'neon' || this.state.selectedSkin === 'rainbow') {
+                this.state.selectedSkin = 'default';
+                this.applySkin('default');
+            }
             
             this.updateUI();
             this.renderShop();
@@ -2174,7 +2138,7 @@ const App = {
         }
     },
 
-    // Функция отрисовки магазина (ИСПРАВЛЕНО для радужного скина)
+    // Функция отрисовки магазина
     renderShop() {
         const skinsGrid = document.getElementById('skins-grid');
         const shopCoins = document.getElementById('shop-coins');
@@ -2246,45 +2210,28 @@ const App = {
         return `<button class="skin-button buy" disabled>${skin.price} 🪙</button>`;
     },
 
-    // Создание превью скина (ИСПРАВЛЕНО для радужного скина)
+    // Создание превью скина
     createSkinPreview(skin) {
         const arrowColor = skin.arrow_color || '#003366';
-        const isRainbow = arrowColor.includes('rainbowGradient');
-        const gradientId = `preview_${skin.id}_${Math.random().toString(36).substr(2, 9)}`;
         
         return `
             <svg width="60" height="60" viewBox="0 0 100 100">
-                ${isRainbow ? `
-                <defs>
-                    <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
-                        <stop offset="16.6%" style="stop-color:#ff7f00;stop-opacity:1" />
-                        <stop offset="33.3%" style="stop-color:#ffff00;stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#00ff00;stop-opacity:1" />
-                        <stop offset="66.6%" style="stop-color:#0000ff;stop-opacity:1" />
-                        <stop offset="83.3%" style="stop-color:#4b0082;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#9400d3;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-                ` : ''}
                 <path d="M20,50 L80,50" 
-                      stroke="${isRainbow ? `url(#${gradientId})` : arrowColor}" 
+                      stroke="${arrowColor}" 
                       stroke-width="8" 
                       stroke-linecap="round"/>
-                ${this.createArrowHead(skin, arrowColor, isRainbow, gradientId)}
+                ${this.createArrowHead(skin, arrowColor)}
             </svg>
         `;
     },
 
-    // Создание наконечника стрелки в зависимости от скина (ИСПРАВЛЕНО для радужного скина)
-    createArrowHead(skin, arrowColor, isRainbow, gradientId = 'rainbowGradient') {
+    // Создание наконечника стрелки в зависимости от скина
+    createArrowHead(skin, arrowColor) {
         const headShape = skin.head_shape || 'default';
-        
-        const fillColor = isRainbow ? `url(#${gradientId})` : arrowColor;
         
         switch(headShape) {
             case 'sharp':
-                return `<polygon points="70,40 90,50 70,60" fill="${fillColor}"/>`;
+                return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}"/>`;
             case 'crystal':
                 return `<polygon points="72,45 85,50 72,55" fill="${arrowColor}"/>
                         <polygon points="72,45 78,50 72,55" fill="white" opacity="0.7"/>`;
@@ -2295,24 +2242,12 @@ const App = {
                         <polygon points="72,42 88,50 72,58" fill="black" opacity="0.3"/>`;
             case 'royal':
                 return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}" stroke="#FFA500" stroke-width="2"/>`;
-            case 'tech':
-                return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}"/>`;
-            case 'magic':
-                // Для радужного скина не добавляем пульсирующий круг
-                if (isRainbow) {
-                    return `<polygon points="70,40 90,50 70,60" fill="${fillColor}"/>`;
-                } else {
-                    return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}"/>
-                            <circle cx="75" cy="50" r="3" fill="white" opacity="0.8">
-                                <animate attributeName="r" values="3;5;3" dur="1s" repeatCount="indefinite"/>
-                            </circle>`;
-                }
             default:
-                return `<polygon points="70,40 90,50 70,60" fill="${isRainbow ? `url(#${gradientId})` : arrowColor}"/>`;
+                return `<polygon points="70,40 90,50 70,60" fill="${arrowColor}"/>`;
         }
     },
 
-    // Показ предпросмотра скина (ИСПРАВЛЕНО для радужного скина)
+    // Показ предпросмотра скина
     showSkinPreview(skin) {
         const previewDiv = document.getElementById('skin-preview');
         const previewTitle = document.getElementById('preview-title');
@@ -2326,41 +2261,23 @@ const App = {
         previewDiv.style.display = 'block';
         previewTitle.innerText = `${skin.name}`;
         
-        // Обновляем SVG с градиентом
+        // Обновляем SVG
         const arrowColor = skin.arrow_color || '#003366';
-        const isRainbow = arrowColor.includes('rainbowGradient');
-        const gradientId = `preview_${skin.id}_full`;
         
-        // Очищаем и перерисовываем SVG с градиентом
+        // Очищаем и перерисовываем SVG
         previewSvg.innerHTML = '';
-        
-        if (isRainbow) {
-            previewSvg.innerHTML = `
-                <defs>
-                    <linearGradient id="${gradientId}" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" style="stop-color:#ff0000;stop-opacity:1" />
-                        <stop offset="16.6%" style="stop-color:#ff7f00;stop-opacity:1" />
-                        <stop offset="33.3%" style="stop-color:#ffff00;stop-opacity:1" />
-                        <stop offset="50%" style="stop-color:#00ff00;stop-opacity:1" />
-                        <stop offset="66.6%" style="stop-color:#0000ff;stop-opacity:1" />
-                        <stop offset="83.3%" style="stop-color:#4b0082;stop-opacity:1" />
-                        <stop offset="100%" style="stop-color:#9400d3;stop-opacity:1" />
-                    </linearGradient>
-                </defs>
-            `;
-        }
         
         // Добавляем линию стрелки
         const line = document.createElementNS('http://www.w3.org/2000/svg', 'path');
         line.classList.add('preview-line');
         line.setAttribute('d', 'M20,50 L80,50');
-        line.setAttribute('stroke', isRainbow ? `url(#${gradientId})` : arrowColor);
+        line.setAttribute('stroke', arrowColor);
         line.setAttribute('stroke-width', '8');
         line.setAttribute('stroke-linecap', 'round');
         previewSvg.appendChild(line);
         
         // Добавляем наконечник
-        const head = this.createArrowHead(skin, arrowColor, isRainbow, gradientId);
+        const head = this.createArrowHead(skin, arrowColor);
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = head;
         while (tempDiv.firstChild) {
