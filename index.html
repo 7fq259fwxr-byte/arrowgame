@@ -3121,3 +3121,28 @@ window.addEventListener('pagehide', function() {
 </script>
 </body>
 </html>
+<!-- ===================== -->
+<!-- FIXED REFERRAL UI -->
+<!-- ===================== -->
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    if (!window.Telegram || !Telegram.WebApp) return;
+    const uid = Telegram.WebApp.initDataUnsafe.user.id;
+    fetch('/api/get_referral_stats', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({user_id: uid})
+    })
+    .then(r => r.json())
+    .then(d => {
+        const el = document.getElementById('referral-link');
+        if (el) {
+            el.innerText = `https://t.me/arrows_game_bot?start=ref_${d.referral_code}`;
+        }
+        const useBtn = document.getElementById('use-referral-btn');
+        if (useBtn) useBtn.remove();
+        const codeInput = document.querySelector('.referral-code-input');
+        if (codeInput) codeInput.remove();
+    });
+});
+</script>
