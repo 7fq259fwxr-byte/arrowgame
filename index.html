@@ -1598,21 +1598,13 @@ const App = {
             const levels = document.createElement('div');
             levels.className = 'leader-levels';
             
-            // Отображаем разные значения в зависимости от сортировки и периода
-            const period = document.getElementById('lb-period').value;
-            
+            // Отображаем разные значения в зависимости от сортировки
             if (sortBy === 'coins') {
                 levels.innerText = `${player.coins} 🪙`;
             } else if (sortBy === 'referrals') {
                 levels.innerText = `${player.referrals} 👥`;
             } else {
-                if (period !== 'all') {
-                    // Если выбран период, показываем прирост уровней (например, +5 уровней)
-                    levels.innerText = `+${player.level} ${this.state.lang === 'en' ? 'Lvl' : this.state.lang === 'zh' ? '级' : 'ур.'}`;
-                } else {
-                    // За все время показываем общий счет
-                    levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
-                }
+                levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
             }
             
             row.appendChild(rank);
