@@ -14,10 +14,57 @@
         .screen { position: absolute; inset: 0; display: none; flex-direction: column; background: var(--c-bg); z-index: 10; }
         .screen.active { display: flex; }
 
-        .top-ui { padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; min-height: 70px; z-index: 100; }
+        /* Верхняя панель */
+        .top-ui { 
+            position: relative; 
+            padding: 15px 20px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            min-height: 70px; 
+            z-index: 100; 
+        }
+        
+        /* Группа слева (монеты) */
         .top-left-group { display: flex; align-items: center; gap: 10px; }
-        .lives-pill { background: white; padding: 8px 15px; border-radius: 25px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); cursor: pointer; transition: transform 0.1s; }
-        .lives-pill:active { transform: scale(0.95); }
+        
+        /* Сердечки по центру */
+        .hearts-container {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 5px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 5px 10px;
+            border-radius: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            cursor: pointer;
+        }
+        
+        .heart-icon {
+            width: 24px;
+            height: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        /* Активное сердце - тускловатый красный */
+        .heart-icon.active {
+            fill: #CD5C5C; /* IndianRed - тусклый красный */
+            stroke: none;
+            transform: scale(1);
+        }
+        
+        /* Потерянное сердце - белое с черной обводкой */
+        .heart-icon.lost {
+            fill: white;
+            stroke: black;
+            stroke-width: 1.5px;
+            transform: scale(0.9);
+        }
+
+        .lives-pill { display: none; } /* Скрываем старый счетчик */
+        
         .coins-pill { background: white; padding: 8px 15px; border-radius: 25px; display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .coins-icon { color: var(--c-gold); font-weight: bold; }
 
@@ -149,6 +196,11 @@
             font-weight: bold;
             font-size: 0.9rem;
             outline: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23003366' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 1em;
         }
         
         .nickname-display { margin: 10px 0; color: var(--c-blue); font-weight: bold; }
@@ -226,15 +278,19 @@
 <div id="app">
     <div class="top-ui" id="main-header">
         <div class="top-left-group">
-            <div class="lives-pill" onclick="App.showTimers()">
-                <svg width="20" height="20" fill="var(--c-red)" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-                <span id="lives-count" style="font-weight: 800; color: var(--c-blue);">3</span>
-            </div>
             <div class="coins-pill">
                 <svg class="coins-icon" width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.31-8.86c-1.77-.45-2.34-.94-2.34-1.67 0-.84.79-1.43 2.1-1.43 1.38 0 1.9.66 1.94 1.64h1.71c-.05-1.34-.87-2.57-2.49-2.97V5H10.9v1.69c-1.51.32-2.72 1.3-2.72 2.81 0 1.79 1.49 2.69 3.66 3.21 1.95.46 2.34 1.15 2.34 1.87 0 .53-.39 1.39-2.1 1.39-1.6 0-2.23-.72-2.32-1.64H8.04c.1 1.7 1.36 2.66 2.86 2.97V19h2.34v-1.67c1.52-.29 2.72-1.16 2.73-2.77-.01-2.2-1.9-2.96-3.66-3.42z"/></svg>
                 <span id="coins-count" style="font-weight: 800; color: var(--c-gold);">0</span>
             </div>
         </div>
+        
+        <!-- Сердечки по центру -->
+        <div class="hearts-container" onclick="App.showTimers()">
+            <svg class="heart-icon active" id="heart-1" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <svg class="heart-icon active" id="heart-2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+            <svg class="heart-icon active" id="heart-3" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        </div>
+
         <div id="btn-back" style="display:none" onclick="App.nav('home')">
             <svg width="30" height="30" fill="var(--c-blue)" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </div>
@@ -325,7 +381,9 @@
                     </select>
                     <select id="lb-period" class="lb-select" onchange="App.loadLeaderboard()">
                         <option value="all">All Time</option>
-                        <option value="weekly">Active This Week</option>
+                        <option value="daily">Today</option>
+                        <option value="weekly">This Week</option>
+                        <option value="monthly">This Month</option>
                     </select>
                 </div>
 
@@ -539,7 +597,9 @@ const GAME_TEXTS = {
         lbCoins: "По монетам",
         lbReferrals: "По рефералам",
         lbAllTime: "За все время",
-        lbWeekly: "Активные за неделю"
+        lbDaily: "За сегодня",
+        lbWeekly: "За неделю",
+        lbMonthly: "За месяц"
     },
     en: {
         level: "LEVEL",
@@ -601,7 +661,9 @@ const GAME_TEXTS = {
         lbCoins: "By Coins",
         lbReferrals: "By Referrals",
         lbAllTime: "All Time",
-        lbWeekly: "Active This Week"
+        lbDaily: "Today",
+        lbWeekly: "This Week",
+        lbMonthly: "This Month"
     },
     zh: {
         level: "关卡",
@@ -663,7 +725,9 @@ const GAME_TEXTS = {
         lbCoins: "按金币",
         lbReferrals: "按推荐",
         lbAllTime: "所有时间",
-        lbWeekly: "本周活跃"
+        lbDaily: "今天",
+        lbWeekly: "本周",
+        lbMonthly: "本月"
     }
 };
 
@@ -1280,6 +1344,20 @@ const App = {
             if (coinsCount) coinsCount.innerText = this.state.coins;
             if (lvlLabel) lvlLabel.innerText = `${t.level} ${this.state.maxLvl}`;
             
+            // Обновляем сердечки
+            for (let i = 1; i <= 3; i++) {
+                const heart = document.getElementById(`heart-${i}`);
+                if (heart) {
+                    if (i <= this.state.lives) {
+                        heart.classList.remove('lost');
+                        heart.classList.add('active');
+                    } else {
+                        heart.classList.remove('active');
+                        heart.classList.add('lost');
+                    }
+                }
+            }
+            
             const togSound = document.getElementById('tog-sound');
             const togVib = document.getElementById('tog-vib');
             if (togSound) togSound.classList.toggle('on', this.state.sound);
@@ -1301,7 +1379,6 @@ const App = {
                 }
             });
             
-            // Обновляем опции сортировки
             const sortSelect = document.getElementById('lb-sort');
             if (sortSelect) {
                 sortSelect.options[0].text = t.lbLevel;
@@ -1311,7 +1388,9 @@ const App = {
             const periodSelect = document.getElementById('lb-period');
             if (periodSelect) {
                 periodSelect.options[0].text = t.lbAllTime;
-                periodSelect.options[1].text = t.lbWeekly;
+                periodSelect.options[1].text = t.lbDaily;
+                periodSelect.options[2].text = t.lbWeekly;
+                periodSelect.options[3].text = t.lbMonthly;
             }
             
             const goalDiv = document.querySelector('#scr-home div[style*="max-width: 300px"]');
