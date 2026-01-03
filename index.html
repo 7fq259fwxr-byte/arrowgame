@@ -19,13 +19,12 @@
             position: relative; 
             padding: 15px 20px; 
             display: flex; 
-            justify-content: center; /* Центрируем содержимое (сердечки) */
+            justify-content: center; 
             align-items: center; 
             min-height: 70px; 
             z-index: 100; 
         }
         
-        /* Кнопка назад (слева) */
         #btn-back {
             position: absolute;
             left: 20px;
@@ -33,7 +32,6 @@
             z-index: 101;
         }
         
-        /* Сердечки по центру */
         .hearts-container {
             display: flex;
             gap: 8px;
@@ -50,14 +48,12 @@
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
         
-        /* Активное сердце - тускловатый красный */
         .heart-icon.active {
-            fill: #CD5C5C; /* IndianRed */
+            fill: #CD5C5C; 
             stroke: none;
             transform: scale(1);
         }
         
-        /* Потерянное сердце - белое с черной обводкой */
         .heart-icon.lost {
             fill: white;
             stroke: #333;
@@ -68,7 +64,6 @@
 
         .board-zone { flex: 1; display: flex; align-items: center; justify-content: center; padding: 20px; transition: 0.2s; width: 100%; }
         
-        /* ЭФФЕКТЫ */
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
             10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
@@ -139,7 +134,6 @@
         .modal-body { background: white; width: 85%; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
         .timer-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; color: var(--c-blue); font-weight: 600; font-variant-numeric: tabular-nums; }
         
-        /* VICTORY SCREEN & CONFETTI */
         #scr-win { align-items: center; justify-content: center; text-align: center; background: rgba(255,255,255,0.95); backdrop-filter: blur(5px); z-index: 1500; overflow: hidden; }
         #confetti-canvas { position: absolute; inset: 0; pointer-events: none; width: 100%; height: 100%; z-index: 1; }
         .win-content { position: relative; z-index: 10; display: flex; flex-direction: column; align-items: center; }
@@ -155,9 +149,8 @@
 
         .grid-line { position: absolute; background: rgba(0, 51, 102, 0.05); z-index: 1; }
         
-        /* STATS & LEADERBOARD */
         #scr-stats, #scr-shop, #scr-map, #scr-set { 
-            height: calc(100% - 145px); /* 70px верхняя панель + 75px навигация */
+            height: calc(100% - 145px); 
             top: 70px;
             overflow-y: auto;
             -webkit-overflow-scrolling: touch;
@@ -175,54 +168,18 @@
         .leader-levels { 
             font-weight: bold; 
             color: var(--c-gold); 
-            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3),
-                        -1px -1px 2px rgba(0, 0, 0, 0.3),
-                        1px -1px 2px rgba(0, 0, 0, 0.3),
-                        -1px 1px 2px rgba(0, 0, 0, 0.3);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
             padding: 4px 8px;
             border-radius: 6px;
             background: rgba(255, 215, 0, 0.1);
         }
         .leader-you { background: rgba(0, 51, 102, 0.05); border-radius: 10px; }
         
-        /* Стили для фильтров лидерборда */
-        .lb-controls {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .lb-row {
-            display: flex;
-            gap: 10px;
-        }
-        .lb-select {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--c-gray);
-            border-radius: 10px;
-            background: white;
-            color: var(--c-blue);
-            font-weight: bold;
-            font-size: 0.9rem;
-            outline: none;
-        }
-        .lb-date {
-            flex: 1;
-            padding: 8px;
-            border: 1px solid var(--c-gray);
-            border-radius: 10px;
-            font-family: inherit;
-        }
-        .lb-btn {
-            padding: 8px 15px;
-            background: var(--c-blue);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+        .lb-controls { display: flex; flex-direction: column; gap: 10px; margin-bottom: 15px; }
+        .lb-row { display: flex; gap: 10px; }
+        .lb-select { flex: 1; padding: 10px; border: 1px solid var(--c-gray); border-radius: 10px; background: white; color: var(--c-blue); font-weight: bold; font-size: 0.9rem; outline: none; }
+        .lb-date { flex: 1; padding: 8px; border: 1px solid var(--c-gray); border-radius: 10px; font-family: inherit; }
+        .lb-btn { padding: 8px 15px; background: var(--c-blue); color: white; border: none; border-radius: 10px; cursor: pointer; font-weight: bold; }
         
         .nickname-display { margin: 10px 0; color: var(--c-blue); font-weight: bold; }
         .tg-info { background: rgba(0, 136, 204, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; }
@@ -237,250 +194,36 @@
         
         .loading { display: flex; justify-content: center; align-items: center; height: 100%; }
         .loading-spinner { width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--c-blue); border-radius: 50%; animation: spin 1s linear infinite; }
-        
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         
-        /* СТИЛИ ДЛЯ МАГАЗИНА */
-        .skin-card {
-            background: white;
-            border-radius: 15px;
-            padding: 15px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: transform 0.2s, box-shadow 0.2s;
-            cursor: pointer;
-            border: 2px solid transparent;
-        }
+        .skin-card { background: white; border-radius: 15px; padding: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; transition: transform 0.2s, box-shadow 0.2s; cursor: pointer; border: 2px solid transparent; }
+        .skin-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0,0,0,0.12); }
+        .skin-card.selected { border-color: var(--c-gold); box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2); }
+        .skin-card.owned:not(.selected) { border-color: var(--c-green); }
+        .skin-preview { width: 60px; height: 60px; margin-bottom: 10px; }
+        .skin-name { font-weight: bold; color: var(--c-blue); margin-bottom: 5px; text-align: center; font-size: 0.9rem; }
+        .skin-price { color: var(--c-gold); font-weight: bold; margin-bottom: 10px; }
+        .skin-button { width: 100%; padding: 8px 0; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; }
+        .skin-button.buy { background: var(--c-blue); color: white; }
+        .skin-button.select { background: var(--c-green); color: white; }
+        .skin-button.selected { background: var(--c-gold); color: white; cursor: default; }
+        .skin-button.owned { background: var(--c-gray); color: #666; cursor: default; }
 
-        .skin-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-        }
-
-        .skin-card.selected {
-            border-color: var(--c-gold);
-            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
-        }
-
-        .skin-card.owned:not(.selected) {
-            border-color: var(--c-green);
-        }
-
-        .skin-preview {
-            width: 60px;
-            height: 60px;
-            margin-bottom: 10px;
-        }
-
-        .skin-name {
-            font-weight: bold;
-            color: var(--c-blue);
-            margin-bottom: 5px;
-            text-align: center;
-            font-size: 0.9rem;
-        }
-
-        .skin-price {
-            color: var(--c-gold);
-            font-weight: bold;
-            margin-bottom: 10px;
-        }
-
-        .skin-button {
-            width: 100%;
-            padding: 8px 0;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .skin-button.buy {
-            background: var(--c-blue);
-            color: white;
-        }
-
-        .skin-button.buy:hover {
-            background: var(--c-blue);
-            opacity: 0.9;
-        }
-
-        .skin-button.buy:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .skin-button.select {
-            background: var(--c-green);
-            color: white;
-        }
-
-        .skin-button.select:hover {
-            background: var(--c-green);
-            opacity: 0.9;
-        }
-
-        .skin-button.selected {
-            background: var(--c-gold);
-            color: white;
-            cursor: default;
-        }
-
-        .skin-button.owned {
-            background: var(--c-gray);
-            color: #666;
-            cursor: default;
-        }
-
-        /* Анимация покупки */
-        @keyframes purchasePulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-            100% { transform: scale(1); }
-        }
-
-        .purchasing {
-            animation: purchasePulse 0.5s ease-in-out infinite;
-        }
-        
-        /* Анимации уведомлений */
-        @keyframes slideIn {
-            from { transform: translateX(100%); opacity: 0; }
-            to { transform: translateX(0); opacity: 1; }
-        }
-        @keyframes slideOut {
-            from { transform: translateX(0); opacity: 1; }
-            to { transform: translateX(100%); opacity: 0; }
-        }
-        
-        /* СТИЛИ ДЛЯ РЕФЕРАЛЬНОЙ СИСТЕМЫ */
-        .referral-section {
-            background: white;
-            margin: 8px 20px;
-            padding: 20px;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        
-        .referral-stats {
-            display: flex;
-            justify-content: space-between;
-            margin: 15px 0;
-        }
-        
-        .referral-stat {
-            text-align: center;
-            flex: 1;
-        }
-        
-        .referral-stat-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--c-blue);
-            margin-bottom: 5px;
-        }
-        
-        .referral-stat-label {
-            font-size: 0.8rem;
-            color: #666;
-        }
-        
-        .referral-link-container {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            word-break: break-all;
-            font-family: monospace;
-            font-size: 0.9rem;
-        }
-        
-        .referral-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-        }
-        
-        .referral-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
-        
-        .referral-btn:active {
-            transform: scale(0.95);
-        }
-        
-        .referral-btn-copy {
-            background: var(--c-blue);
-            color: white;
-        }
-        
-        .referral-btn-use {
-            background: var(--c-green);
-            color: white;
-        }
-        
-        .referral-code-input {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid var(--c-gray);
-            border-radius: 10px;
-            font-size: 1rem;
-            margin: 15px 0;
-            text-align: center;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-        
-        .referral-code-input:focus {
-            outline: none;
-            border-color: var(--c-blue);
-        }
-        
-        .referral-list {
-            margin-top: 15px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        
-        .referral-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-        }
-        
-        .referral-item:last-child {
-            border-bottom: none;
-        }
-        
-        .referral-item-name {
-            font-weight: bold;
-            color: var(--c-blue);
-        }
-        
-        .referral-item-level {
-            color: var(--c-gold);
-            font-weight: bold;
-        }
-        
-        .referral-bonus-badge {
-            background: var(--c-gold);
-            color: white;
-            padding: 3px 8px;
-            border-radius: 10px;
-            font-size: 0.8rem;
-            font-weight: bold;
-        }
+        .referral-section { background: white; margin: 8px 20px; padding: 20px; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .referral-stats { display: flex; justify-content: space-between; margin: 15px 0; }
+        .referral-stat { text-align: center; flex: 1; }
+        .referral-stat-value { font-size: 1.5rem; font-weight: bold; color: var(--c-blue); margin-bottom: 5px; }
+        .referral-stat-label { font-size: 0.8rem; color: #666; }
+        .referral-link-container { background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 15px 0; word-break: break-all; font-family: monospace; font-size: 0.9rem; }
+        .referral-buttons { display: flex; gap: 10px; margin-top: 15px; }
+        .referral-btn { flex: 1; padding: 12px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; transition: transform 0.1s; }
+        .referral-btn-copy { background: var(--c-blue); color: white; }
+        .referral-btn-use { background: var(--c-green); color: white; }
+        .referral-code-input { width: 100%; padding: 15px; border: 2px solid var(--c-gray); border-radius: 10px; font-size: 1rem; margin: 15px 0; text-align: center; letter-spacing: 2px; text-transform: uppercase; }
+        .referral-list { margin-top: 15px; max-height: 200px; overflow-y: auto; }
+        .referral-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .referral-item-name { font-weight: bold; color: var(--c-blue); }
+        .referral-item-level { color: var(--c-gold); font-weight: bold; }
     </style>
 </head>
 <body>
@@ -491,7 +234,6 @@
             <svg width="30" height="30" fill="var(--c-blue)" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
         </div>
         
-        <!-- СЕРДЕЧКИ ПО ЦЕНТРУ -->
         <div class="hearts-container" onclick="App.showTimers()">
             <svg class="heart-icon active" id="heart-1" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <svg class="heart-icon active" id="heart-2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
@@ -575,7 +317,6 @@
             <div style="margin-top: 30px;">
                 <h3 style="color: var(--c-blue); margin-bottom: 15px;">Leaderboard</h3>
                 
-                <!-- НОВЫЕ ФИЛЬТРЫ -->
                 <div class="lb-controls">
                     <div class="lb-row">
                         <select id="lb-sort" class="lb-select" onchange="App.loadLeaderboard()">
@@ -591,7 +332,6 @@
                             <option value="custom">Custom Range</option>
                         </select>
                     </div>
-                    <!-- Блок выбора дат -->
                     <div id="custom-dates" class="lb-row" style="display:none; align-items: center;">
                         <input type="date" id="lb-start" class="lb-date">
                         <span style="font-weight:bold">-</span>
@@ -625,7 +365,6 @@
             
             <div id="skins-grid" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 15px;"></div>
             
-            <!-- Предпросмотр скина -->
             <div id="skin-preview" style="display: none; margin-top: 20px; padding: 20px; background: white; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
                 <h4 id="preview-title" style="color: var(--c-blue); margin-bottom: 15px;">Preview</h4>
                 <div id="preview-arrow" style="width: 100px; height: 100px; margin: 0 auto;">
@@ -697,13 +436,11 @@
                         <button class="referral-btn referral-btn-use" onclick="App.showUseReferralModal()" id="use-referral-btn">Use code</button>
                     </div>
                     
-                    <!-- Список рефералов -->
                     <div id="referral-list-container" style="display: none; margin-top: 20px;">
                         <h4 style="color: var(--c-blue); margin-bottom: 10px;" id="referral-list-title">Your referrals:</h4>
                         <div class="referral-list" id="referral-list"></div>
                     </div>
                     
-                    <!-- Информация о реферере -->
                     <div id="referrer-info" style="display: none; margin-top: 15px; padding: 10px; background: rgba(0, 51, 102, 0.05); border-radius: 8px;">
                         <div style="font-size: 0.9rem; color: #666;">You were invited by:</div>
                         <div style="font-weight: bold; color: var(--c-blue);" id="referrer-name">-</div>
@@ -785,7 +522,6 @@ const GAME_TEXTS = {
         recovery: "Восстановление",
         fullHP: "Полные жизни",
         heart: "Сердце",
-        // Добавленные тексты для магазина
         shopTitle: "🛍️ Магазин скинов",
         yourCoins: "Ваши монеты:",
         buy: "Купить",
@@ -799,7 +535,6 @@ const GAME_TEXTS = {
         selectSuccess: "✅ Скин выбран!",
         alreadyOwned: "❌ Уже есть",
         alreadySelected: "❌ Уже выбран",
-        // Добавленные тексты для реферальной системы
         referrals: "Рефералы",
         referralInfo: "Реферальная система",
         yourCode: "Ваш код:",
@@ -819,7 +554,6 @@ const GAME_TEXTS = {
         noReferrals: "У вас еще нет рефералов",
         youWereInvitedBy: "Вас пригласил:",
         referralHowTo: "Приглашайте друзей и получайте 100 монет за каждого!",
-        // Фильтры лидерборда
         lbLevel: "По уровням",
         lbCoins: "По монетам",
         lbReferrals: "По рефералам",
@@ -852,7 +586,6 @@ const GAME_TEXTS = {
         recovery: "Recovery",
         fullHP: "Full HP",
         heart: "Heart",
-        // Added shop texts
         shopTitle: "🛍️ Skin Shop",
         yourCoins: "Your coins:",
         buy: "Buy",
@@ -866,7 +599,6 @@ const GAME_TEXTS = {
         selectSuccess: "✅ Skin selected!",
         alreadyOwned: "❌ Already owned",
         alreadySelected: "❌ Already selected",
-        // Added referral texts
         referrals: "Referrals",
         referralInfo: "Referral System",
         yourCode: "Your code:",
@@ -886,7 +618,6 @@ const GAME_TEXTS = {
         noReferrals: "You don't have referrals yet",
         youWereInvitedBy: "You were invited by:",
         referralHowTo: "Invite friends and get 100 coins for each!",
-        // Leaderboard filters
         lbLevel: "By Level",
         lbCoins: "By Coins",
         lbReferrals: "By Referrals",
@@ -919,7 +650,6 @@ const GAME_TEXTS = {
         recovery: "恢复",
         fullHP: "满生命",
         heart: "心",
-        // Added shop texts
         shopTitle: "🛍️ 皮肤商店",
         yourCoins: "您的金币:",
         buy: "购买",
@@ -933,7 +663,6 @@ const GAME_TEXTS = {
         selectSuccess: "✅ 皮肤已选择!",
         alreadyOwned: "❌ 已经拥有",
         alreadySelected: "❌ 已经选择",
-        // Added referral texts
         referrals: "推荐",
         referralInfo: "推荐系统",
         yourCode: "您的代码:",
@@ -953,7 +682,6 @@ const GAME_TEXTS = {
         noReferrals: "您还没有推荐",
         youWereInvitedBy: "您被邀请者:",
         referralHowTo: "邀请朋友，每人都可获得100金币！",
-        // Leaderboard filters
         lbLevel: "按等级",
         lbCoins: "按金币",
         lbReferrals: "按推荐",
@@ -1604,7 +1332,13 @@ const App = {
             } else if (sortBy === 'referrals') {
                 levels.innerText = `${player.referrals} 👥`;
             } else {
-                levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
+                const period = document.getElementById('lb-period').value;
+                if (period !== 'all') {
+                    // Если выбран период, показываем прирост уровней
+                     levels.innerText = `+${player.level} ${this.state.lang === 'en' ? 'Lvl' : this.state.lang === 'zh' ? '级' : 'ур.'}`;
+                } else {
+                     levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
+                }
             }
             
             row.appendChild(rank);
