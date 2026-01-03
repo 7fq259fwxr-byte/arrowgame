@@ -133,6 +133,24 @@
         }
         .leader-you { background: rgba(0, 51, 102, 0.05); border-radius: 10px; }
         
+        /* Стили для фильтров лидерборда */
+        .lb-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .lb-select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid var(--c-gray);
+            border-radius: 10px;
+            background: white;
+            color: var(--c-blue);
+            font-weight: bold;
+            font-size: 0.9rem;
+            outline: none;
+        }
+        
         .nickname-display { margin: 10px 0; color: var(--c-blue); font-weight: bold; }
         .tg-info { background: rgba(0, 136, 204, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0; text-align: center; }
         
@@ -279,9 +297,7 @@
     <div id="scr-stats" class="screen">
         <div style="padding: 20px; padding-bottom: 90px;">
             <h2 style="color: var(--c-blue); margin-bottom: 20px;">Statistics</h2>
-            <div id="stats-loading" class="loading" style="display: none;">
-                <div class="loading-spinner"></div>
-            </div>
+            
             <div class="stat-card" id="stats-card" style="display: none;">
                 <div class="stat-row">
                     <span class="stat-label">Total Levels Passed:</span>
@@ -296,8 +312,23 @@
                     <span class="stat-value" id="stats-rank">-</span>
                 </div>
             </div>
+            
             <div style="margin-top: 30px;">
                 <h3 style="color: var(--c-blue); margin-bottom: 15px;">Leaderboard</h3>
+                
+                <!-- Фильтры лидерборда -->
+                <div class="lb-controls">
+                    <select id="lb-sort" class="lb-select" onchange="App.loadLeaderboard()">
+                        <option value="level">By Level</option>
+                        <option value="coins">By Coins</option>
+                        <option value="referrals">By Referrals</option>
+                    </select>
+                    <select id="lb-period" class="lb-select" onchange="App.loadLeaderboard()">
+                        <option value="all">All Time</option>
+                        <option value="weekly">Active This Week</option>
+                    </select>
+                </div>
+
                 <div id="leaderboard-loading" class="loading">
                     <div class="loading-spinner"></div>
                 </div>
@@ -503,7 +534,12 @@ const GAME_TEXTS = {
         activeReferrals: "Активных рефералов:",
         noReferrals: "У вас еще нет рефералов",
         youWereInvitedBy: "Вас пригласил:",
-        referralHowTo: "Приглашайте друзей и получайте 100 монет за каждого!"
+        referralHowTo: "Приглашайте друзей и получайте 100 монет за каждого!",
+        lbLevel: "По уровням",
+        lbCoins: "По монетам",
+        lbReferrals: "По рефералам",
+        lbAllTime: "За все время",
+        lbWeekly: "Активные за неделю"
     },
     en: {
         level: "LEVEL",
@@ -560,7 +596,12 @@ const GAME_TEXTS = {
         activeReferrals: "Active referrals:",
         noReferrals: "You don't have referrals yet",
         youWereInvitedBy: "You were invited by:",
-        referralHowTo: "Invite friends and get 100 coins for each!"
+        referralHowTo: "Invite friends and get 100 coins for each!",
+        lbLevel: "By Level",
+        lbCoins: "By Coins",
+        lbReferrals: "By Referrals",
+        lbAllTime: "All Time",
+        lbWeekly: "Active This Week"
     },
     zh: {
         level: "关卡",
@@ -617,7 +658,12 @@ const GAME_TEXTS = {
         activeReferrals: "活跃推荐:",
         noReferrals: "您还没有推荐",
         youWereInvitedBy: "您被邀请者:",
-        referralHowTo: "邀请朋友，每人都可获得100金币！"
+        referralHowTo: "邀请朋友，每人都可获得100金币！",
+        lbLevel: "按等级",
+        lbCoins: "按金币",
+        lbReferrals: "按推荐",
+        lbAllTime: "所有时间",
+        lbWeekly: "本周活跃"
     }
 };
 
@@ -1117,11 +1163,16 @@ const App = {
 
     async loadLeaderboard() {
         try {
+            const sortSelect = document.getElementById('lb-sort');
+            const periodSelect = document.getElementById('lb-period');
+            const sortBy = sortSelect ? sortSelect.value : 'level';
+            const period = periodSelect ? periodSelect.value : 'all';
+
             document.getElementById('leaderboard-loading').style.display = 'flex';
             document.getElementById('leaderboard-list').style.display = 'none';
             document.getElementById('leaderboard-error').style.display = 'none';
             
-            const response = await fetch(`${API_BASE_URL}/leaderboard`, {
+            const response = await fetch(`${API_BASE_URL}/leaderboard?sort=${sortBy}&period=${period}`, {
                 method: 'GET',
                 headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' }
             });
@@ -1129,7 +1180,7 @@ const App = {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success) {
-                    this.renderLeaderboard(data.leaderboard);
+                    this.renderLeaderboard(data.leaderboard, sortBy);
                     document.getElementById('leaderboard-loading').style.display = 'none';
                     document.getElementById('leaderboard-list').style.display = 'block';
                 } else {
@@ -1145,7 +1196,7 @@ const App = {
         }
     },
 
-    renderLeaderboard(leaderboard) {
+    renderLeaderboard(leaderboard, sortBy = 'level') {
         const list = document.getElementById('leaderboard-list');
         if (!list) return;
         list.innerHTML = '';
@@ -1182,7 +1233,14 @@ const App = {
             
             const levels = document.createElement('div');
             levels.className = 'leader-levels';
-            levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
+            
+            if (sortBy === 'coins') {
+                levels.innerText = `${player.coins} 🪙`;
+            } else if (sortBy === 'referrals') {
+                levels.innerText = `${player.referrals} 👥`;
+            } else {
+                levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
+            }
             
             row.appendChild(rank);
             row.appendChild(name);
@@ -1242,6 +1300,19 @@ const App = {
                     btn.innerText = t.connect;
                 }
             });
+            
+            // Обновляем опции сортировки
+            const sortSelect = document.getElementById('lb-sort');
+            if (sortSelect) {
+                sortSelect.options[0].text = t.lbLevel;
+                sortSelect.options[1].text = t.lbCoins;
+                sortSelect.options[2].text = t.lbReferrals;
+            }
+            const periodSelect = document.getElementById('lb-period');
+            if (periodSelect) {
+                periodSelect.options[0].text = t.lbAllTime;
+                periodSelect.options[1].text = t.lbWeekly;
+            }
             
             const goalDiv = document.querySelector('#scr-home div[style*="max-width: 300px"]');
             if (goalDiv) {
