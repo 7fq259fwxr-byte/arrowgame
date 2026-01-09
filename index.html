@@ -481,6 +481,274 @@
             font-size: 0.8rem;
             font-weight: bold;
         }
+        
+        /* СТИЛИ ДЛЯ ЕЖЕДНЕВНЫХ НАГРАД */
+        .daily-reward-section {
+            background: white;
+            margin: 8px 20px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .daily-reward-stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 15px 0;
+        }
+        
+        .daily-reward-stat {
+            text-align: center;
+            flex: 1;
+        }
+        
+        .daily-reward-stat-value {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--c-blue);
+            margin-bottom: 5px;
+        }
+        
+        .daily-reward-stat-label {
+            font-size: 0.8rem;
+            color: #666;
+        }
+        
+        .daily-reward-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            margin: 15px 0;
+        }
+        
+        .daily-reward-day {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 10px 5px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .daily-reward-day.claimed {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .daily-reward-day.current {
+            background: #d1ecf1;
+            border-color: #17a2b8;
+            transform: scale(1.05);
+        }
+        
+        .daily-reward-day.future {
+            background: #f8f9fa;
+            opacity: 0.7;
+        }
+        
+        .daily-reward-day-number {
+            font-weight: bold;
+            font-size: 1.2rem;
+            color: var(--c-blue);
+            margin-bottom: 5px;
+        }
+        
+        .daily-reward-day-coins {
+            color: var(--c-gold);
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        
+        .daily-reward-day-skin {
+            color: var(--c-green);
+            font-weight: bold;
+            font-size: 0.8rem;
+            margin-top: 3px;
+        }
+        
+        .daily-reward-button {
+            width: 100%;
+            padding: 12px;
+            background: var(--c-blue);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-weight: bold;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        
+        .daily-reward-button:active {
+            transform: scale(0.95);
+        }
+        
+        .daily-reward-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .daily-reward-timer {
+            text-align: center;
+            margin-top: 10px;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        /* Анимация получения награды */
+        @keyframes rewardPulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        
+        .reward-claiming {
+            animation: rewardPulse 0.5s ease-in-out infinite;
+        }
+        
+        /* СТИЛИ ДЛЯ КОМБО-СИСТЕМЫ */
+        .combo-counter {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--c-gold);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+            z-index: 1000;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .combo-active {
+            opacity: 1;
+        }
+        
+        /* СТИЛИ ДЛЯ ПАСХАЛОК */
+        .easter-egg-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 10000;
+            animation: slideIn 0.3s ease-out;
+            max-width: 300px;
+        }
+        
+        .easter-egg-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 1.1rem;
+        }
+        
+        .easter-egg-description {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        /* Стили для секции пасхалок */
+        .easter-eggs-section {
+            background: white;
+            margin: 8px 20px;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        
+        .easter-eggs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .easter-egg-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.3s;
+        }
+        
+        .easter-egg-item.unlocked {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .easter-egg-item.locked {
+            background: #f8f9fa;
+            opacity: 0.7;
+        }
+        
+        .easter-egg-emoji {
+            font-size: 2rem;
+            margin-bottom: 5px;
+        }
+        
+        .easter-egg-name {
+            font-weight: bold;
+            color: var(--c-blue);
+            margin-bottom: 3px;
+        }
+        
+        .easter-egg-description-small {
+            font-size: 0.8rem;
+            color: #666;
+            margin-bottom: 5px;
+        }
+        
+        .easter-egg-status {
+            font-size: 0.8rem;
+            font-weight: bold;
+        }
+        
+        .easter-egg-status.unlocked {
+            color: #28a745;
+        }
+        
+        .easter-egg-status.locked {
+            color: #dc3545;
+        }
+        
+        /* Стили для прогресса комбо */
+        .combo-progress {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 10px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+            z-index: 100;
+        }
+        
+        .combo-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4CAF50, #8BC34A);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .combo-multiplier {
+            position: absolute;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #4CAF50;
+            z-index: 100;
+        }
     </style>
 </head>
 <body>
@@ -497,6 +765,12 @@
             <svg class="heart-icon active" id="heart-2" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
             <svg class="heart-icon active" id="heart-3" viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
         </div>
+        
+        <!-- ИНДИКАТОР КОМБО -->
+        <div class="combo-progress" id="combo-progress" style="display: none;">
+            <div class="combo-progress-fill" id="combo-progress-fill"></div>
+        </div>
+        <div class="combo-multiplier" id="combo-multiplier" style="display: none;">x1.0</div>
     </div>
 
     <div id="scr-home" class="screen active">
@@ -523,6 +797,11 @@
             <button onclick="App.nav('shop')" style="padding:10px 20px; background:var(--c-gold); color:white; border:none; border-radius:10px; font-weight:bold;">Shop</button>
         </div>
         
+        <!-- КНОПКА ЕЖЕДНЕВНОЙ НАГРАДЫ -->
+        <button id="daily-reward-btn" onclick="App.showDailyReward()" style="margin-top:15px; padding:12px 25px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; display:none;">
+            🎁 Ежедневная награда
+        </button>
+        
         <button id="fix-level-btn" onclick="App.fixProblemLevels()" style="margin-top:15px; padding:8px 15px; background:#ff6b6b; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none;">
             🔧 Исправить уровни
         </button>
@@ -530,6 +809,8 @@
 
     <div id="scr-game" class="screen">
         <div class="board-zone"><div id="board"></div></div>
+        <!-- СЧЕТЧИК КОМБО -->
+        <div class="combo-counter" id="combo-counter">x1</div>
     </div>
     
     <div id="scr-win" class="screen">
@@ -570,6 +851,14 @@
                     <span class="stat-label">Global Rank:</span>
                     <span class="stat-value" id="stats-rank">-</span>
                 </div>
+                <div class="stat-row">
+                    <span class="stat-label">Max Combo:</span>
+                    <span class="stat-value" id="stats-max-combo">0</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Easter Eggs Found:</span>
+                    <span class="stat-value" id="stats-easter-eggs">0/10</span>
+                </div>
             </div>
             
             <div style="margin-top: 30px;">
@@ -582,6 +871,7 @@
                             <option value="level">By Level</option>
                             <option value="coins">By Coins</option>
                             <option value="referrals">By Referrals</option>
+                            <option value="combo">By Max Combo</option>
                         </select>
                         <select id="lb-period" class="lb-select" onchange="App.toggleCustomDate()">
                             <option value="all">All Time</option>
@@ -659,6 +949,67 @@
                 <div style="font-family: monospace; font-size: 0.9rem; color: #666;" id="tg-user-id">Not connected</div>
             </div>
             
+            <!-- СЕКЦИЯ ЕЖЕДНЕВНЫХ НАГРАД -->
+            <div class="daily-reward-section">
+                <h3 style="color: var(--c-blue); margin-bottom: 15px;">🎁 Daily Rewards</h3>
+                
+                <div id="daily-reward-loading" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                </div>
+                
+                <div id="daily-reward-content" style="display: none;">
+                    <div class="daily-reward-stats">
+                        <div class="daily-reward-stat">
+                            <div class="daily-reward-stat-value" id="daily-streak">0</div>
+                            <div class="daily-reward-stat-label" id="daily-streak-label">Current Streak</div>
+                        </div>
+                        <div class="daily-reward-stat">
+                            <div class="daily-reward-stat-value" id="daily-total">0</div>
+                            <div class="daily-reward-stat-label" id="daily-total-label">Total Claimed</div>
+                        </div>
+                        <div class="daily-reward-stat">
+                            <div class="daily-reward-stat-value" id="daily-next">0</div>
+                            <div class="daily-reward-stat-label" id="daily-next-label">Next Reward</div>
+                        </div>
+                    </div>
+                    
+                    <div class="daily-reward-grid" id="daily-reward-grid">
+                        <!-- Дни будут заполнены через JS -->
+                    </div>
+                    
+                    <button class="daily-reward-button" id="claim-daily-btn" onclick="App.claimDailyReward()" disabled>
+                        <span id="claim-daily-text">Claim Reward</span>
+                    </button>
+                    
+                    <div class="daily-reward-timer" id="daily-timer">
+                        Next reward available in: <span id="daily-timer-value">--:--:--</span>
+                    </div>
+                </div>
+                
+                <div id="daily-reward-error" style="display: none; text-align: center; padding: 20px; color: var(--c-red);"></div>
+            </div>
+            
+            <!-- СЕКЦИЯ ПАСХАЛОК -->
+            <div class="easter-eggs-section">
+                <h3 style="color: var(--c-blue); margin-bottom: 15px;">🥚 Easter Eggs</h3>
+                
+                <div id="easter-eggs-loading" class="loading" style="display: none;">
+                    <div class="loading-spinner"></div>
+                </div>
+                
+                <div id="easter-eggs-content" style="display: none;">
+                    <div style="margin-bottom: 15px; color: #666; font-size: 0.9rem;" id="easter-eggs-desc">
+                        Discover hidden secrets in the game to unlock special achievements!
+                    </div>
+                    
+                    <div class="easter-eggs-grid" id="easter-eggs-grid">
+                        <!-- Пасхалки будут заполнены через JS -->
+                    </div>
+                </div>
+                
+                <div id="easter-eggs-error" style="display: none; text-align: center; padding: 20px; color: var(--c-red);"></div>
+            </div>
+            
             <div class="referral-section">
                 <h3 style="color: var(--c-blue); margin-bottom: 15px;">👥 Referral System</h3>
                 
@@ -727,6 +1078,29 @@
         <div class="nav-icon active" id="n-home" onclick="App.nav('home')"><svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div>
         <div class="nav-icon" id="n-stats" onclick="App.nav('stats')"><svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11V3H8v6H2v12h20V11h-6zm-6-6h4v14h-4V5zm-6 6h4v8H4v-8zm16 8h-4v-6h4v6z"/></svg></div>
         <div class="nav-icon" id="n-set" onclick="App.nav('set')"><svg width="28" height="28" fill="currentColor" viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 00.12-.61l-1.92-3.32a.488.488 0 00-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 00-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.49.49 0 00-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36 2.54c.59-.24 1.13-.58 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg></div>
+    </div>
+
+    <!-- МОДАЛЬНОЕ ОКНО ЕЖЕДНЕВНЫХ НАГРАД -->
+    <div class="modal" id="modal-daily">
+        <div class="modal-body">
+            <h3 style="color:var(--c-blue); margin-bottom:15px;" id="daily-modal-title">Daily Rewards</h3>
+            
+            <div class="daily-reward-grid" id="daily-modal-grid" style="margin:20px 0;">
+                <!-- Сетка 7 дней будет заполнена через JS -->
+            </div>
+            
+            <div style="margin: 15px 0; padding: 15px; background: rgba(0, 51, 102, 0.05); border-radius: 10px;">
+                <div style="font-weight: bold; color: var(--c-blue); margin-bottom: 5px;" id="daily-current-reward">Today's reward: 50 coins</div>
+                <div style="font-size: 0.9rem; color: #666;" id="daily-streak-info">Current streak: 0 days</div>
+            </div>
+            
+            <button onclick="App.claimDailyReward()" id="daily-claim-btn" style="padding:12px 30px; background:var(--c-blue); color:white; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer; margin-bottom:10px;">Claim Reward</button>
+            <button onclick="App.hideDailyModal()" style="padding:12px 30px; background:var(--c-gray); color:#555; border:none; border-radius:12px; font-weight:bold; font-size:16px; cursor:pointer;">Close</button>
+            
+            <div class="daily-reward-timer" id="daily-modal-timer" style="margin-top: 15px;">
+                Next reward in: <span id="daily-modal-timer-value">--:--:--</span>
+            </div>
+        </div>
     </div>
 
     <div class="modal" id="modal-timers">
@@ -826,7 +1200,36 @@ const GAME_TEXTS = {
         lbAllTime: "За все время",
         lbDaily: "За сегодня",
         lbWeekly: "За неделю",
-        lbMonthly: "За месяц"
+        lbMonthly: "За месяц",
+        // Ежедневные награды
+        dailyRewards: "Ежедневные награды",
+        currentStreak: "Текущая серия:",
+        totalClaimed: "Всего получено:",
+        nextReward: "Следующая награда:",
+        claimReward: "Забрать награду",
+        claiming: "Получение...",
+        rewardAvailable: "🎁 Награда доступна!",
+        rewardClaimed: "✅ Награда получена!",
+        streakBroken: "❌ Серия прервана",
+        day1: "День 1",
+        day2: "День 2", 
+        day3: "День 3",
+        day4: "День 4",
+        day5: "День 5",
+        day6: "День 6",
+        day7: "День 7",
+        coins: "монет",
+        // Комбо-система
+        combo: "Комбо",
+        maxCombo: "Макс. комбо:",
+        comboMultiplier: "Множитель:",
+        // Пасхалки
+        easterEggs: "Пасхалки",
+        easterEggsFound: "Найдено пасхалок:",
+        secretDiscovered: "🎉 Секрет обнаружен!",
+        keepExploring: "Продолжайте исследовать игру!",
+        // Новые тексты
+        lbCombo: "По комбо"
     },
     en: {
         level: "LEVEL",
@@ -893,7 +1296,36 @@ const GAME_TEXTS = {
         lbAllTime: "All Time",
         lbDaily: "Today",
         lbWeekly: "This Week",
-        lbMonthly: "This Month"
+        lbMonthly: "This Month",
+        // Daily Rewards
+        dailyRewards: "Daily Rewards",
+        currentStreak: "Current streak:",
+        totalClaimed: "Total claimed:",
+        nextReward: "Next reward:",
+        claimReward: "Claim Reward",
+        claiming: "Claiming...",
+        rewardAvailable: "🎁 Reward available!",
+        rewardClaimed: "✅ Reward claimed!",
+        streakBroken: "❌ Streak broken",
+        day1: "Day 1",
+        day2: "Day 2",
+        day3: "Day 3",
+        day4: "Day 4",
+        day5: "Day 5",
+        day6: "Day 6",
+        day7: "Day 7",
+        coins: "coins",
+        // Combo system
+        combo: "Combo",
+        maxCombo: "Max combo:",
+        comboMultiplier: "Multiplier:",
+        // Easter Eggs
+        easterEggs: "Easter Eggs",
+        easterEggsFound: "Easter eggs found:",
+        secretDiscovered: "🎉 Secret discovered!",
+        keepExploring: "Keep exploring the game!",
+        // New texts
+        lbCombo: "By Combo"
     },
     zh: {
         level: "关卡",
@@ -960,7 +1392,36 @@ const GAME_TEXTS = {
         lbAllTime: "所有时间",
         lbDaily: "今天",
         lbWeekly: "本周",
-        lbMonthly: "本月"
+        lbMonthly: "本月",
+        // Daily Rewards
+        dailyRewards: "每日奖励",
+        currentStreak: "当前连胜:",
+        totalClaimed: "总共获得:",
+        nextReward: "下次奖励:",
+        claimReward: "领取奖励",
+        claiming: "领取中...",
+        rewardAvailable: "🎁 奖励可用!",
+        rewardClaimed: "✅ 奖励已领取!",
+        streakBroken: "❌ 连胜中断",
+        day1: "第1天",
+        day2: "第2天",
+        day3: "第3天",
+        day4: "第4天",
+        day5: "第5天",
+        day6: "第6天",
+        day7: "第7天",
+        coins: "金币",
+        // Combo system
+        combo: "连击",
+        maxCombo: "最大连击:",
+        comboMultiplier: "倍数:",
+        // Easter Eggs
+        easterEggs: "彩蛋",
+        easterEggsFound: "找到彩蛋:",
+        secretDiscovered: "🎉 发现秘密!",
+        keepExploring: "继续探索游戏!",
+        // New texts
+        lbCombo: "按连击"
     }
 };
 
@@ -1015,6 +1476,31 @@ const SKINS_DATA = {
         "head_shape": "royal"
     }
 };
+
+// Конфигурация ежедневных наград
+const DAILY_REWARDS = [
+    { day: 1, coins: 50, skin: null },
+    { day: 2, coins: 100, skin: null },
+    { day: 3, coins: 150, skin: null },
+    { day: 4, coins: 200, skin: null },
+    { day: 5, coins: 250, skin: null },
+    { day: 6, coins: 300, skin: null },
+    { day: 7, coins: 500, skin: "golden" }
+];
+
+// Конфигурация пасхалок
+const EASTER_EGGS = [
+    { id: "first_blood", emoji: "🩸", name: "First Blood", description: "Сделать первую ошибку", unlocked: false },
+    { id: "perfect_game", emoji: "⭐", name: "Perfect Game", description: "Пройти уровень без ошибок", unlocked: false },
+    { id: "speed_demon", emoji: "⚡", name: "Speed Demon", description: "Пройти уровень за 10 секунд", unlocked: false },
+    { id: "combo_master", emoji: "🔥", name: "Combo Master", description: "Достичь комбо x5", unlocked: false },
+    { id: "night_owl", emoji: "🦉", name: "Night Owl", description: "Играть после полуночи", unlocked: false },
+    { id: "early_bird", emoji: "🌅", name: "Early Bird", description: "Играть до 6 утра", unlocked: false },
+    { id: "streak_king", emoji: "👑", name: "Streak King", description: "7 дней подряд", unlocked: false },
+    { id: "rich_player", emoji: "💰", name: "Rich Player", description: "Накопить 1000 монет", unlocked: false },
+    { id: "skin_collector", emoji: "🎨", name: "Skin Collector", description: "Купить 3 скина", unlocked: false },
+    { id: "referral_king", emoji: "🤝", name: "Referral King", description: "Пригласить 3 друзей", unlocked: false }
+];
 
 // --- CONFETTI ENGINE ---
 const Confetti = {
@@ -1150,7 +1636,36 @@ const App = {
         selectedSkin: 'default',
         shopItems: [],
         referralInfo: null,
-        referralStats: null
+        referralStats: null,
+        // НОВЫЕ ПОЛЯ ДЛЯ ЕЖЕДНЕВНЫХ НАГРАД
+        dailyRewards: {
+            streak: 0,
+            lastClaimed: null,
+            totalClaimed: 0,
+            rewards: {}
+        },
+        // НОВЫЕ ПОЛЯ ДЛЯ КОМБО-СИСТЕМЫ
+        combo: {
+            current: 0,
+            max: 0,
+            multiplier: 1.0,
+            lastHitTime: 0,
+            comboTimeout: null
+        },
+        // НОВЫЕ ПОЛЯ ДЛЯ ПАСХАЛОК
+        easterEggs: {
+            discovered: [],
+            firstBlood: false,
+            perfectGame: false,
+            speedDemon: false,
+            comboMaster: false,
+            nightOwl: false,
+            earlyBird: false,
+            streakKing: false,
+            richPlayer: false,
+            skinCollector: false,
+            referralKing: false
+        }
     },
     curNum: 1,
     boardSize: 5,
@@ -1163,6 +1678,12 @@ const App = {
     busy: false,
     isTelegram: false,
     storageKey: 'arrows_pro_save_v1',
+    // Константы для комбо-системы
+    COMBO_CONFIG: {
+        TIMEOUT: 3000, // 3 секунды между ходами для поддержания комбо
+        MULTIPLIER_STEPS: [1.0, 1.2, 1.5, 2.0, 2.5, 3.0],
+        PROGRESS_PER_HIT: 0.2
+    },
 
     async init() {
         this.isTelegram = !!(window.Telegram && Telegram.WebApp);
@@ -1183,6 +1704,12 @@ const App = {
             this.updateUI();
             Confetti.init();
             setInterval(() => this.tick(), 1000);
+            
+            // Запускаем проверку ежедневных наград
+            this.checkDailyReward();
+            
+            // Запускаем проверку пасхалок
+            this.checkEasterEggs();
             
             const unlock = () => {
                 if(!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -1330,7 +1857,34 @@ const App = {
                     selectedSkin: saved.selectedSkin || 'default',
                     shopItems: saved.shopItems || [],
                     referralInfo: saved.referralInfo || null,
-                    referralStats: saved.referralStats || null
+                    referralStats: saved.referralStats || null,
+                    // Загружаем новые поля с проверкой на существование
+                    dailyRewards: saved.dailyRewards || {
+                        streak: 0,
+                        lastClaimed: null,
+                        totalClaimed: 0,
+                        rewards: {}
+                    },
+                    combo: saved.combo || {
+                        current: 0,
+                        max: 0,
+                        multiplier: 1.0,
+                        lastHitTime: 0,
+                        comboTimeout: null
+                    },
+                    easterEggs: saved.easterEggs || {
+                        discovered: [],
+                        firstBlood: false,
+                        perfectGame: false,
+                        speedDemon: false,
+                        comboMaster: false,
+                        nightOwl: false,
+                        earlyBird: false,
+                        streakKing: false,
+                        richPlayer: false,
+                        skinCollector: false,
+                        referralKing: false
+                    }
                 };
                 return;
             }
@@ -1357,6 +1911,32 @@ const App = {
             this.state.shopItems = [];
             this.state.referralInfo = null;
             this.state.referralStats = null;
+            this.state.dailyRewards = {
+                streak: 0,
+                lastClaimed: null,
+                totalClaimed: 0,
+                rewards: {}
+            };
+            this.state.combo = {
+                current: 0,
+                max: 0,
+                multiplier: 1.0,
+                lastHitTime: 0,
+                comboTimeout: null
+            };
+            this.state.easterEggs = {
+                discovered: [],
+                firstBlood: false,
+                perfectGame: false,
+                speedDemon: false,
+                comboMaster: false,
+                nightOwl: false,
+                earlyBird: false,
+                streakKing: false,
+                richPlayer: false,
+                skinCollector: false,
+                referralKing: false
+            };
         }
     },
 
@@ -1431,6 +2011,22 @@ const App = {
                     this.state.tgUsername = data.user.username || this.state.tgUsername;
                     this.state.skins = data.user.skins || ['default'];
                     this.state.selectedSkin = data.user.selected_skin || 'default';
+                    
+                    // Загружаем ежедневные награды
+                    if (data.user.daily_rewards) {
+                        this.state.dailyRewards = data.user.daily_rewards;
+                    }
+                    
+                    // Загружаем комбо
+                    if (data.user.combo) {
+                        this.state.combo = data.user.combo;
+                    }
+                    
+                    // Загружаем пасхалки
+                    if (data.user.easter_eggs) {
+                        this.state.easterEggs = data.user.easter_eggs;
+                    }
+                    
                     this.updateUI();
                     this.saveState();
                     
@@ -1443,6 +2039,13 @@ const App = {
                     document.getElementById('tg-connected').innerText = GAME_TEXTS[this.state.lang].connected;
                     
                     this.loadReferralInfo();
+                    
+                    // Показываем кнопку ежедневных наград
+                    const dailyBtn = document.getElementById('daily-reward-btn');
+                    if (dailyBtn) dailyBtn.style.display = 'block';
+                    
+                    // Проверяем доступность награды
+                    this.checkDailyReward();
                 } else {
                     if (data.error === 'User not found') this.showTelegramConnectionButton();
                 }
@@ -1458,6 +2061,10 @@ const App = {
     async updateScore() {
         if (!this.state.tgUserId || !this.state.tgUsername) return;
         try {
+            // Применяем множитель комбо к награде
+            const baseCoins = 20;
+            const coinsEarned = Math.floor(baseCoins * this.state.combo.multiplier);
+            
             const response = await fetch(`${API_BASE_URL}/update_score`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
@@ -1465,7 +2072,10 @@ const App = {
                     user_id: this.state.tgUserId,
                     username: this.state.tgUsername,
                     level: this.state.maxLvl,
-                    coins_earned: 20
+                    coins_earned: coinsEarned,
+                    combo: this.state.combo.current,
+                    max_combo: this.state.combo.max,
+                    easter_eggs: this.state.easterEggs
                 })
             });
             if (response.ok) {
@@ -1603,6 +2213,8 @@ const App = {
                 levels.innerText = `${player.coins} 🪙`;
             } else if (sortBy === 'referrals') {
                 levels.innerText = `${player.referrals} 👥`;
+            } else if (sortBy === 'combo') {
+                levels.innerText = `${player.max_combo || 0} 🔥`;
             } else {
                 levels.innerText = `${player.score} ${this.state.lang === 'en' ? 'Levels' : this.state.lang === 'zh' ? '等级' : 'Уровней'}`;
             }
@@ -1630,6 +2242,11 @@ const App = {
         document.getElementById('btn-connect-tg').style.display = 'none';
         document.getElementById('tg-user-id').innerText = `ID: ${this.state.tgUserId}`;
         document.getElementById('tg-connected').innerText = GAME_TEXTS[this.state.lang].connected;
+        
+        // Показываем кнопку ежедневных наград
+        const dailyBtn = document.getElementById('daily-reward-btn');
+        if (dailyBtn) dailyBtn.style.display = 'block';
+        
         alert('Connected to Telegram (demo mode)!');
         this.loadReferralInfo();
     },
@@ -1684,6 +2301,7 @@ const App = {
                 sortSelect.options[0].text = t.lbLevel;
                 sortSelect.options[1].text = t.lbCoins;
                 sortSelect.options[2].text = t.lbReferrals;
+                sortSelect.options[3].text = t.lbCombo;
             }
             const periodSelect = document.getElementById('lb-period');
             if (periodSelect) {
@@ -1704,6 +2322,27 @@ const App = {
             // Обновляем монеты ТОЛЬКО в магазине
             const shopCoins = document.getElementById('shop-coins');
             if (shopCoins) shopCoins.innerText = this.state.coins;
+            
+            // Обновляем статистику
+            const statsLevels = document.getElementById('stats-levels');
+            const statsCoins = document.getElementById('stats-coins');
+            const statsMaxCombo = document.getElementById('stats-max-combo');
+            const statsEasterEggs = document.getElementById('stats-easter-eggs');
+            
+            if (statsLevels) statsLevels.innerText = this.state.maxLvl - 1;
+            if (statsCoins) statsCoins.innerText = this.state.coins;
+            if (statsMaxCombo) statsMaxCombo.innerText = this.state.combo.max;
+            
+            // Подсчитываем найденные пасхалки
+            const discoveredCount = this.state.easterEggs.discovered.length;
+            if (statsEasterEggs) statsEasterEggs.innerText = `${discoveredCount}/10`;
+            
+            // Обновляем кнопку ежедневных наград
+            const dailyBtn = document.getElementById('daily-reward-btn');
+            if (dailyBtn) {
+                const streak = this.state.dailyRewards.streak || 0;
+                dailyBtn.innerText = `🎁 ${t.dailyRewards} (${streak} ${t.day1.substring(0, 4)})`;
+            }
             
             if (this.state.referralInfo) {
                 this.updateReferralUI();
@@ -1742,10 +2381,19 @@ const App = {
             if(scr === 'map') this.renderMap();
             if(scr === 'stats') this.showStatsScreen();
             if(scr === 'shop') this.loadShop(); // Загружаем магазин при переходе
-            if(scr === 'set') this.loadReferralInfo(); // Загружаем реферальную информацию при переходе в настройки
+            if(scr === 'set') {
+                this.loadReferralInfo(); // Загружаем реферальную информацию при переходе в настройки
+                this.loadDailyRewardInfo(); // Загружаем информацию о ежедневных наградах
+                this.loadEasterEggsInfo(); // Загружаем информацию о пасхалках
+            }
             
             const boardZone = document.querySelector('.board-zone');
             if (boardZone) boardZone.classList.remove('error-shake');
+            
+            // Сбрасываем комбо при выходе из игры
+            if (scr !== 'game') {
+                this.resetCombo();
+            }
         } catch (error) {
             console.error('Error in nav:', error);
         }
@@ -1770,14 +2418,23 @@ const App = {
             const statsLevels = document.getElementById('stats-levels');
             const statsCoins = document.getElementById('stats-coins');
             const statsRank = document.getElementById('stats-rank');
+            const statsMaxCombo = document.getElementById('stats-max-combo');
+            const statsEasterEggs = document.getElementById('stats-easter-eggs');
             const statLabels = document.querySelectorAll('.stat-label');
             
             if (statLabels[0]) statLabels[0].innerText = t.totalLevels;
             if (statLabels[1]) statLabels[1].innerText = t.totalCoins;
             if (statLabels[2]) statLabels[2].innerText = t.globalRank;
+            if (statLabels[3]) statLabels[3].innerText = t.maxCombo;
+            if (statLabels[4]) statLabels[4].innerText = t.easterEggsFound;
             
             if (statsLevels) statsLevels.innerText = this.state.maxLvl - 1;
             if (statsCoins) statsCoins.innerText = this.state.coins;
+            if (statsMaxCombo) statsMaxCombo.innerText = this.state.combo.max;
+            
+            // Подсчитываем найденные пасхалки
+            const discoveredCount = this.state.easterEggs.discovered.length;
+            if (statsEasterEggs) statsEasterEggs.innerText = `${discoveredCount}/10`;
             
             // Загружаем глобальный ранг
             if (this.state.tgConnected && this.state.tgUserId) {
@@ -1822,6 +2479,12 @@ const App = {
             g.gain.setValueAtTime(0.3, t); g.gain.linearRampToValueAtTime(0.3, t + 0.4);
             g.gain.linearRampToValueAtTime(0, t + 0.8);
             osc.start(t); osc.stop(t + 0.8);
+        } else if (type === 'combo') {
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(200, t);
+            osc.frequency.exponentialRampToValueAtTime(800, t + 0.1);
+            g.gain.setValueAtTime(0.2, t); g.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+            osc.start(t); osc.stop(t + 0.2);
         }
     },
 
@@ -1830,6 +2493,7 @@ const App = {
         if (type === 'win') navigator.vibrate(50);
         if (type === 'err') navigator.vibrate([50, 50, 50]);
         if (type === 'victory') navigator.vibrate([50, 30, 50, 30, 100]);
+        if (type === 'combo') navigator.vibrate([30, 30, 30]);
     },
 
     play(n = this.state.maxLvl) {
@@ -1936,6 +2600,9 @@ const App = {
                 wrap.onclick = () => this.move(a, wrap, arrowSize);
                 b.appendChild(wrap);
             });
+            
+            // Сбрасываем комбо при загрузке нового уровня
+            this.resetCombo();
         } catch (error) {
             console.error('Error loading level:', error);
             alert('Ошибка загрузки уровня. Попробуйте еще раз.');
@@ -2241,6 +2908,20 @@ const App = {
             if(!hit) { 
                 this.playAudio('win'); 
                 this.vibrate('win'); 
+                
+                // Увеличиваем комбо при успешном ходе
+                this.increaseCombo();
+            } else {
+                // Сбрасываем комбо при ошибке
+                this.resetCombo();
+                
+                // Проверяем пасхалку "First Blood"
+                if (!this.state.easterEggs.firstBlood) {
+                    this.state.easterEggs.firstBlood = true;
+                    this.state.easterEggs.discovered.push('first_blood');
+                    this.showEasterEggNotification('first_blood');
+                    this.saveState();
+                }
             }
             
             let startTime = null;
@@ -2299,6 +2980,13 @@ const App = {
                         this.saveState();
                         
                         if(data.every(x => x.solved)) {
+                            // Проверяем пасхалку "Perfect Game"
+                            if (!hit && !this.state.easterEggs.perfectGame) {
+                                this.state.easterEggs.perfectGame = true;
+                                this.state.easterEggs.discovered.push('perfect_game');
+                                this.showEasterEggNotification('perfect_game');
+                            }
+                            
                             setTimeout(() => this.showWin(), 300);
                         }
                     }
@@ -2315,7 +3003,10 @@ const App = {
 
     showWin() {
         try {
-            const coinsEarned = 20;
+            // Применяем множитель комбо к награде
+            const baseCoins = 20;
+            const coinsEarned = Math.floor(baseCoins * this.state.combo.multiplier);
+            
             this.state.coins += coinsEarned;
             if(this.curNum === this.state.maxLvl) this.state.maxLvl++;
             
@@ -2349,6 +3040,9 @@ const App = {
                 Confetti.start();
                 title.classList.add('show');
             }, 100);
+            
+            // Сбрасываем комбо после победы
+            this.resetCombo();
         } catch (error) {
             console.error('Error in showWin:', error);
             this.nav('home');
@@ -2401,6 +3095,9 @@ const App = {
             this.updateUI(); 
         }
         if(document.getElementById('modal-timers').style.display === 'flex') this.renderTimersList();
+        
+        // Обновляем таймер ежедневных наград
+        this.updateDailyRewardTimer();
     },
 
     renderTimersList() {
@@ -2739,6 +3436,13 @@ const App = {
             // Обновляем UI
             this.updateUI();
             
+            // Проверяем пасхалку "Skin Collector"
+            if (this.state.skins.length >= 3 && !this.state.easterEggs.skinCollector) {
+                this.state.easterEggs.skinCollector = true;
+                this.state.easterEggs.discovered.push('skin_collector');
+                this.showEasterEggNotification('skin_collector');
+            }
+            
             // Показываем сообщение об успехе
             const skin = this.state.shopItems.find(s => s.id === skinId);
             if (skin) {
@@ -2893,6 +3597,13 @@ const App = {
             
             if (referralLoading) referralLoading.style.display = 'none';
             if (referralContent) referralContent.style.display = 'block';
+            
+            // Проверяем пасхалку "Referral King"
+            if (data.referral_count >= 3 && !this.state.easterEggs.referralKing) {
+                this.state.easterEggs.referralKing = true;
+                this.state.easterEggs.discovered.push('referral_king');
+                this.showEasterEggNotification('referral_king');
+            }
             
         } catch (error) {
             console.error('Error loading referral info:', error);
@@ -3132,6 +3843,13 @@ const App = {
             this.state.coins += 100;
             this.updateUI();
             
+            // Проверяем пасхалку "Rich Player"
+            if (this.state.coins >= 1000 && !this.state.easterEggs.richPlayer) {
+                this.state.easterEggs.richPlayer = true;
+                this.state.easterEggs.discovered.push('rich_player');
+                this.showEasterEggNotification('rich_player');
+            }
+            
             // Закрываем модальное окно
             this.hideUseReferralModal();
             
@@ -3180,11 +3898,668 @@ const App = {
                 }
             }, 300);
         }, 3000);
+    },
+
+    // --- СИСТЕМА ЕЖЕДНЕВНЫХ НАГРАД ---
+
+    // Проверка доступности ежедневной награды
+    async checkDailyReward() {
+        if (!this.state.tgConnected) return;
+        
+        try {
+            const response = await fetch(`${API_BASE_URL}/check_daily_reward`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.state.tgUserId
+                })
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.available) {
+                    // Показываем кнопку с уведомлением
+                    const dailyBtn = document.getElementById('daily-reward-btn');
+                    if (dailyBtn) {
+                        dailyBtn.style.display = 'block';
+                        dailyBtn.style.animation = 'rewardPulse 2s ease-in-out infinite';
+                        
+                        // Показываем всплывающее уведомление
+                        this.showNotification(GAME_TEXTS[this.state.lang].rewardAvailable, 'success');
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error checking daily reward:', error);
+        }
+    },
+
+    // Загрузка информации о ежедневных наградах
+    async loadDailyRewardInfo() {
+        if (!this.state.tgUserId) {
+            this.showDailyRewardNotConnected();
+            return;
+        }
+        
+        try {
+            const dailyLoading = document.getElementById('daily-reward-loading');
+            const dailyContent = document.getElementById('daily-reward-content');
+            const dailyError = document.getElementById('daily-reward-error');
+            
+            if (dailyLoading) dailyLoading.style.display = 'flex';
+            if (dailyContent) dailyContent.style.display = 'none';
+            if (dailyError) dailyError.style.display = 'none';
+            
+            const response = await fetch(`${API_BASE_URL}/get_daily_reward_info`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.state.tgUserId
+                })
+            });
+            
+            if (!response.ok) throw new Error('Network error');
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to load daily reward info');
+            }
+            
+            // Сохраняем информацию
+            this.state.dailyRewards = {
+                streak: data.streak || 0,
+                lastClaimed: data.last_claimed || null,
+                totalClaimed: data.total_claimed || 0,
+                rewards: data.rewards || {},
+                available: data.available || false
+            };
+            
+            // Обновляем UI
+            this.updateDailyRewardUI();
+            
+            if (dailyLoading) dailyLoading.style.display = 'none';
+            if (dailyContent) dailyContent.style.display = 'block';
+            
+            // Проверяем пасхалку "Streak King"
+            if (data.streak >= 7 && !this.state.easterEggs.streakKing) {
+                this.state.easterEggs.streakKing = true;
+                this.state.easterEggs.discovered.push('streak_king');
+                this.showEasterEggNotification('streak_king');
+            }
+            
+        } catch (error) {
+            console.error('Error loading daily reward info:', error);
+            const dailyError = document.getElementById('daily-reward-error');
+            if (dailyError) {
+                dailyError.style.display = 'block';
+                dailyError.innerHTML = `
+                    <div style="color: var(--c-red); text-align: center; padding: 20px;">
+                        Ошибка загрузки информации о ежедневных наградах<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+            
+            const dailyLoading = document.getElementById('daily-reward-loading');
+            if (dailyLoading) dailyLoading.style.display = 'none';
+        }
+    },
+
+    // Обновление интерфейса ежедневных наград
+    updateDailyRewardUI() {
+        const t = GAME_TEXTS[this.state.lang];
+        const daily = this.state.dailyRewards;
+        
+        // Обновляем статистику
+        document.getElementById('daily-streak').innerText = daily.streak || 0;
+        document.getElementById('daily-total').innerText = daily.totalClaimed || 0;
+        
+        // Определяем следующую награду
+        const nextDay = Math.min((daily.streak % 7) + 1, 7);
+        const nextReward = DAILY_REWARDS[nextDay - 1];
+        document.getElementById('daily-next').innerText = `${nextReward.coins} ${t.coins}`;
+        
+        // Обновляем подписи
+        document.getElementById('daily-streak-label').innerText = t.currentStreak;
+        document.getElementById('daily-total-label').innerText = t.totalClaimed;
+        document.getElementById('daily-next-label').innerText = t.nextReward;
+        
+        // Заполняем сетку дней
+        const grid = document.getElementById('daily-reward-grid');
+        if (grid) {
+            grid.innerHTML = '';
+            
+            DAILY_REWARDS.forEach((reward, index) => {
+                const day = index + 1;
+                const dayElement = document.createElement('div');
+                dayElement.className = 'daily-reward-day';
+                
+                // Определяем статус дня
+                if (day <= daily.streak) {
+                    dayElement.classList.add('claimed');
+                } else if (day === daily.streak + 1) {
+                    dayElement.classList.add('current');
+                } else {
+                    dayElement.classList.add('future');
+                }
+                
+                dayElement.innerHTML = `
+                    <div class="daily-reward-day-number">${day}</div>
+                    <div class="daily-reward-day-coins">${reward.coins} ${t.coins}</div>
+                    ${reward.skin ? `<div class="daily-reward-day-skin">${reward.skin}</div>` : ''}
+                `;
+                
+                grid.appendChild(dayElement);
+            });
+        }
+        
+        // Обновляем кнопку получения награды
+        const claimBtn = document.getElementById('claim-daily-btn');
+        const claimText = document.getElementById('claim-daily-text');
+        if (claimBtn && claimText) {
+            if (daily.available) {
+                claimBtn.disabled = false;
+                claimText.innerText = t.claimReward;
+                claimBtn.classList.remove('reward-claiming');
+            } else {
+                claimBtn.disabled = true;
+                claimText.innerText = t.claiming;
+                claimBtn.classList.add('reward-claiming');
+            }
+        }
+    },
+
+    // Показ уведомления для неподключенных пользователей (ежедневные награды)
+    showDailyRewardNotConnected() {
+        const t = GAME_TEXTS[this.state.lang];
+        const dailyContent = document.getElementById('daily-reward-content');
+        const dailyError = document.getElementById('daily-reward-error');
+        const dailyLoading = document.getElementById('daily-reward-loading');
+        
+        if (dailyLoading) dailyLoading.style.display = 'none';
+        if (dailyContent) dailyContent.style.display = 'none';
+        if (dailyError) {
+            dailyError.style.display = 'block';
+            dailyError.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="color: var(--c-red); margin-bottom: 10px;">${t.notConnected}</div>
+                    <button onclick="App.connectTelegram()" style="padding:10px 20px; background:#0088cc; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+                        ${t.connect}
+                    </button>
+                </div>
+            `;
+        }
+    },
+
+    // Показ модального окна ежедневных наград
+    showDailyReward() {
+        const modal = document.getElementById('modal-daily');
+        if (!modal) return;
+        
+        this.loadDailyRewardInfo();
+        
+        const t = GAME_TEXTS[this.state.lang];
+        const daily = this.state.dailyRewards;
+        
+        // Обновляем заголовок
+        document.getElementById('daily-modal-title').innerText = t.dailyRewards;
+        
+        // Заполняем сетку дней в модальном окне
+        const grid = document.getElementById('daily-modal-grid');
+        if (grid) {
+            grid.innerHTML = '';
+            
+            DAILY_REWARDS.forEach((reward, index) => {
+                const day = index + 1;
+                const dayElement = document.createElement('div');
+                dayElement.className = 'daily-reward-day';
+                
+                // Определяем статус дня
+                if (day <= daily.streak) {
+                    dayElement.classList.add('claimed');
+                } else if (day === daily.streak + 1) {
+                    dayElement.classList.add('current');
+                } else {
+                    dayElement.classList.add('future');
+                }
+                
+                const dayText = t[`day${day}`] || `Day ${day}`;
+                dayElement.innerHTML = `
+                    <div class="daily-reward-day-number">${dayText}</div>
+                    <div class="daily-reward-day-coins">${reward.coins} ${t.coins}</div>
+                    ${reward.skin ? `<div class="daily-reward-day-skin">${reward.skin}</div>` : ''}
+                `;
+                
+                grid.appendChild(dayElement);
+            });
+        }
+        
+        // Обновляем информацию о текущей награде
+        const nextDay = Math.min((daily.streak % 7) + 1, 7);
+        const nextReward = DAILY_REWARDS[nextDay - 1];
+        document.getElementById('daily-current-reward').innerText = 
+            `${t[`day${nextDay}`] || `Day ${nextDay}`}: ${nextReward.coins} ${t.coins}${nextReward.skin ? ` + ${nextReward.skin} skin` : ''}`;
+        
+        document.getElementById('daily-streak-info').innerText = `${t.currentStreak} ${daily.streak} ${t.day1.substring(0, 4)}`;
+        
+        // Обновляем кнопку
+        const claimBtn = document.getElementById('daily-claim-btn');
+        if (claimBtn) {
+            if (daily.available) {
+                claimBtn.disabled = false;
+                claimBtn.innerText = t.claimReward;
+            } else {
+                claimBtn.disabled = true;
+                claimBtn.innerText = t.claiming;
+            }
+        }
+        
+        modal.style.display = 'flex';
+    },
+
+    // Скрытие модального окна ежедневных наград
+    hideDailyModal() {
+        const modal = document.getElementById('modal-daily');
+        if (modal) modal.style.display = 'none';
+    },
+
+    // Получение ежедневной награды
+    async claimDailyReward() {
+        if (!this.state.tgUserId) {
+            this.showNotification(GAME_TEXTS[this.state.lang].notConnected, 'error');
+            return;
+        }
+        
+        const t = GAME_TEXTS[this.state.lang];
+        const claimBtn = document.getElementById('daily-claim-btn');
+        const originalText = claimBtn ? claimBtn.innerText : '';
+        
+        try {
+            if (claimBtn) {
+                claimBtn.disabled = true;
+                claimBtn.innerText = t.claiming;
+                claimBtn.classList.add('reward-claiming');
+            }
+            
+            const response = await fetch(`${API_BASE_URL}/claim_daily_reward`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                body: JSON.stringify({
+                    user_id: this.state.tgUserId
+                })
+            });
+            
+            if (!response.ok) throw new Error('Network error');
+            
+            const data = await response.json();
+            
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to claim reward');
+            }
+            
+            // Обновляем состояние
+            this.state.coins += data.coins_earned || 0;
+            this.state.dailyRewards = {
+                streak: data.streak || 0,
+                lastClaimed: data.last_claimed || null,
+                totalClaimed: data.total_claimed || 0,
+                rewards: data.rewards || {},
+                available: false
+            };
+            
+            // Если получен скин, добавляем его
+            if (data.skin_earned) {
+                if (!this.state.skins.includes(data.skin_earned)) {
+                    this.state.skins.push(data.skin_earned);
+                }
+                this.showNotification(`🎉 Вы получили скин "${data.skin_earned}"!`, 'success');
+            }
+            
+            // Обновляем UI
+            this.updateUI();
+            this.updateDailyRewardUI();
+            
+            // Показываем анимацию получения монет
+            this.showCoinsAnimation(data.coins_earned || 0);
+            
+            // Показываем уведомление об успехе
+            this.showNotification(t.rewardClaimed, 'success');
+            
+            // Закрываем модальное окно через 2 секунды
+            setTimeout(() => {
+                this.hideDailyModal();
+            }, 2000);
+            
+        } catch (error) {
+            console.error('Error claiming daily reward:', error);
+            
+            let errorMessage = error.message;
+            if (errorMessage.includes('already claimed')) {
+                errorMessage = t.rewardClaimed;
+            } else if (errorMessage.includes('streak broken')) {
+                errorMessage = t.streakBroken;
+            }
+            
+            this.showNotification(errorMessage, 'error');
+            
+            // Восстанавливаем кнопку
+            if (claimBtn) {
+                claimBtn.disabled = false;
+                claimBtn.innerText = originalText;
+                claimBtn.classList.remove('reward-claiming');
+            }
+        }
+    },
+
+    // Обновление таймера ежедневных наград
+    updateDailyRewardTimer() {
+        const timerElement = document.getElementById('daily-timer-value');
+        const modalTimerElement = document.getElementById('daily-modal-timer-value');
+        
+        if (!this.state.dailyRewards.lastClaimed) return;
+        
+        const lastClaimed = new Date(this.state.dailyRewards.lastClaimed);
+        const nextAvailable = new Date(lastClaimed);
+        nextAvailable.setDate(nextAvailable.getDate() + 1);
+        nextAvailable.setHours(0, 0, 0, 0);
+        
+        const now = new Date();
+        const diff = nextAvailable - now;
+        
+        if (diff <= 0) {
+            if (timerElement) timerElement.innerText = '00:00:00';
+            if (modalTimerElement) modalTimerElement.innerText = '00:00:00';
+            return;
+        }
+        
+        const hours = Math.floor(diff / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        const timeString = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        
+        if (timerElement) timerElement.innerText = timeString;
+        if (modalTimerElement) modalTimerElement.innerText = timeString;
+    },
+
+    // --- КОМБО-СИСТЕМА ---
+
+    // Увеличение комбо
+    increaseCombo() {
+        const now = Date.now();
+        
+        // Проверяем, не истекло ли время комбо
+        if (now - this.state.combo.lastHitTime > this.COMBO_CONFIG.TIMEOUT) {
+            this.state.combo.current = 0;
+        }
+        
+        // Увеличиваем комбо
+        this.state.combo.current++;
+        this.state.combo.lastHitTime = now;
+        
+        // Обновляем максимальное комбо
+        if (this.state.combo.current > this.state.combo.max) {
+            this.state.combo.max = this.state.combo.current;
+            
+            // Проверяем пасхалку "Combo Master"
+            if (this.state.combo.current >= 5 && !this.state.easterEggs.comboMaster) {
+                this.state.easterEggs.comboMaster = true;
+                this.state.easterEggs.discovered.push('combo_master');
+                this.showEasterEggNotification('combo_master');
+            }
+        }
+        
+        // Обновляем множитель
+        const multiplierIndex = Math.min(
+            Math.floor(this.state.combo.current / 2) - 1,
+            this.COMBO_CONFIG.MULTIPLIER_STEPS.length - 1
+        );
+        this.state.combo.multiplier = multiplierIndex >= 0 ? 
+            this.COMBO_CONFIG.MULTIPLIER_STEPS[multiplierIndex] : 1.0;
+        
+        // Показываем комбо
+        this.showCombo();
+        
+        // Устанавливаем таймер сброса комбо
+        if (this.state.combo.comboTimeout) {
+            clearTimeout(this.state.combo.comboTimeout);
+        }
+        
+        this.state.combo.comboTimeout = setTimeout(() => {
+            this.resetCombo();
+        }, this.COMBO_CONFIG.TIMEOUT);
+        
+        // Сохраняем состояние
+        this.saveState();
+    },
+
+    // Показ комбо
+    showCombo() {
+        const comboCounter = document.getElementById('combo-counter');
+        const comboProgress = document.getElementById('combo-progress');
+        const comboProgressFill = document.getElementById('combo-progress-fill');
+        const comboMultiplier = document.getElementById('combo-multiplier');
+        
+        if (comboCounter) {
+            comboCounter.innerText = `x${this.state.combo.current}`;
+            comboCounter.classList.add('combo-active');
+            
+            // Воспроизводим звук комбо
+            this.playAudio('combo');
+            this.vibrate('combo');
+            
+            // Убираем анимацию через 1 секунду
+            setTimeout(() => {
+                comboCounter.classList.remove('combo-active');
+            }, 1000);
+        }
+        
+        if (comboProgress && comboProgressFill) {
+            comboProgress.style.display = 'block';
+            
+            // Обновляем прогресс (чем больше комбо, тем быстрее заполняется)
+            const progress = Math.min(this.state.combo.current * this.COMBO_CONFIG.PROGRESS_PER_HIT, 1);
+            comboProgressFill.style.width = `${progress * 100}%`;
+        }
+        
+        if (comboMultiplier) {
+            comboMultiplier.style.display = 'block';
+            comboMultiplier.innerText = `x${this.state.combo.multiplier.toFixed(1)}`;
+        }
+    },
+
+    // Сброс комбо
+    resetCombo() {
+        this.state.combo.current = 0;
+        this.state.combo.multiplier = 1.0;
+        
+        const comboProgress = document.getElementById('combo-progress');
+        const comboMultiplier = document.getElementById('combo-multiplier');
+        
+        if (comboProgress) {
+            comboProgress.style.display = 'none';
+        }
+        
+        if (comboMultiplier) {
+            comboMultiplier.style.display = 'none';
+        }
+        
+        if (this.state.combo.comboTimeout) {
+            clearTimeout(this.state.combo.comboTimeout);
+            this.state.combo.comboTimeout = null;
+        }
+        
+        // Сохраняем состояние
+        this.saveState();
+    },
+
+    // --- ПАСХАЛКИ ---
+
+    // Проверка пасхалок
+    checkEasterEggs() {
+        const now = new Date();
+        const hour = now.getHours();
+        
+        // Проверяем пасхалку "Night Owl" (игра после полуночи)
+        if (hour >= 0 && hour < 6 && !this.state.easterEggs.nightOwl) {
+            this.state.easterEggs.nightOwl = true;
+            this.state.easterEggs.discovered.push('night_owl');
+            this.showEasterEggNotification('night_owl');
+        }
+        
+        // Проверяем пасхалку "Early Bird" (игра до 6 утра)
+        if (hour >= 6 && hour < 9 && !this.state.easterEggs.earlyBird) {
+            this.state.easterEggs.earlyBird = true;
+            this.state.easterEggs.discovered.push('early_bird');
+            this.showEasterEggNotification('early_bird');
+        }
+        
+        // Проверяем пасхалку "Rich Player" (1000 монет)
+        if (this.state.coins >= 1000 && !this.state.easterEggs.richPlayer) {
+            this.state.easterEggs.richPlayer = true;
+            this.state.easterEggs.discovered.push('rich_player');
+            this.showEasterEggNotification('rich_player');
+        }
+        
+        // Сохраняем состояние
+        this.saveState();
+    },
+
+    // Загрузка информации о пасхалках
+    async loadEasterEggsInfo() {
+        if (!this.state.tgUserId) {
+            this.showEasterEggsNotConnected();
+            return;
+        }
+        
+        try {
+            const eggsLoading = document.getElementById('easter-eggs-loading');
+            const eggsContent = document.getElementById('easter-eggs-content');
+            const eggsError = document.getElementById('easter-eggs-error');
+            
+            if (eggsLoading) eggsLoading.style.display = 'flex';
+            if (eggsContent) eggsContent.style.display = 'none';
+            if (eggsError) eggsError.style.display = 'none';
+            
+            // В реальном приложении здесь был бы запрос к API
+            // Но для демо просто используем локальные данные
+            
+            // Обновляем UI
+            this.updateEasterEggsUI();
+            
+            if (eggsLoading) eggsLoading.style.display = 'none';
+            if (eggsContent) eggsContent.style.display = 'block';
+            
+        } catch (error) {
+            console.error('Error loading easter eggs info:', error);
+            const eggsError = document.getElementById('easter-eggs-error');
+            if (eggsError) {
+                eggsError.style.display = 'block';
+                eggsError.innerHTML = `
+                    <div style="color: var(--c-red); text-align: center; padding: 20px;">
+                        Ошибка загрузки информации о пасхалках<br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+            }
+            
+            const eggsLoading = document.getElementById('easter-eggs-loading');
+            if (eggsLoading) eggsLoading.style.display = 'none';
+        }
+    },
+
+    // Обновление интерфейса пасхалок
+    updateEasterEggsUI() {
+        const t = GAME_TEXTS[this.state.lang];
+        const grid = document.getElementById('easter-eggs-grid');
+        
+        if (!grid) return;
+        
+        grid.innerHTML = '';
+        
+        EASTER_EGGS.forEach(egg => {
+            const isUnlocked = this.state.easterEggs.discovered.includes(egg.id);
+            const eggElement = document.createElement('div');
+            eggElement.className = `easter-egg-item ${isUnlocked ? 'unlocked' : 'locked'}`;
+            
+            eggElement.innerHTML = `
+                <div class="easter-egg-emoji">${egg.emoji}</div>
+                <div class="easter-egg-name">${egg.name}</div>
+                <div class="easter-egg-description-small">${egg.description}</div>
+                <div class="easter-egg-status ${isUnlocked ? 'unlocked' : 'locked'}">
+                    ${isUnlocked ? '✅ Unlocked' : '🔒 Locked'}
+                </div>
+            `;
+            
+            grid.appendChild(eggElement);
+        });
+        
+        // Обновляем описание
+        const discoveredCount = this.state.easterEggs.discovered.length;
+        const totalCount = EASTER_EGGS.length;
+        const descElement = document.getElementById('easter-eggs-desc');
+        if (descElement) {
+            descElement.innerText = `Найдено пасхалок: ${discoveredCount}/${totalCount}. ${t.keepExploring}`;
+        }
+    },
+
+    // Показ уведомления для неподключенных пользователей (пасхалки)
+    showEasterEggsNotConnected() {
+        const t = GAME_TEXTS[this.state.lang];
+        const eggsContent = document.getElementById('easter-eggs-content');
+        const eggsError = document.getElementById('easter-eggs-error');
+        const eggsLoading = document.getElementById('easter-eggs-loading');
+        
+        if (eggsLoading) eggsLoading.style.display = 'none';
+        if (eggsContent) eggsContent.style.display = 'none';
+        if (eggsError) {
+            eggsError.style.display = 'block';
+            eggsError.innerHTML = `
+                <div style="text-align: center; padding: 20px;">
+                    <div style="color: var(--c-red); margin-bottom: 10px;">${t.notConnected}</div>
+                    <button onclick="App.connectTelegram()" style="padding:10px 20px; background:#0088cc; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">
+                        ${t.connect}
+                    </button>
+                </div>
+            `;
+        }
+    },
+
+    // Показ уведомления о найденной пасхалке
+    showEasterEggNotification(eggId) {
+        const egg = EASTER_EGGS.find(e => e.id === eggId);
+        if (!egg) return;
+        
+        const t = GAME_TEXTS[this.state.lang];
+        
+        const notification = document.createElement('div');
+        notification.className = 'easter-egg-notification';
+        notification.innerHTML = `
+            <div class="easter-egg-title">${egg.emoji} ${t.secretDiscovered}</div>
+            <div class="easter-egg-description">${egg.name}: ${egg.description}</div>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Удаляем через 5 секунд
+        setTimeout(() => {
+            notification.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
+        
+        // Воспроизводим звук
+        this.playAudio('victory');
+        this.vibrate('victory');
     }
 };
 
 window.onload = function() {
-    console.log('Page loaded, starting game with referrals...');
+    console.log('Page loaded, starting game with all features...');
     
     const isTelegram = !!(window.Telegram && Telegram.WebApp);
     console.log('Telegram detected:', isTelegram);
@@ -3199,7 +4574,7 @@ window.onload = function() {
         
         setTimeout(() => {
             App.init();
-            console.log('Game with referrals started successfully!');
+            console.log('Game with all features started successfully!');
         }, 100);
         
     } catch (error) {
