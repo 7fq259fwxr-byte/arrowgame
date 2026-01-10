@@ -117,11 +117,51 @@
         .arrow-box.error-arr .p-head { fill: var(--c-red); }
 
         /* UI */
-        #scr-home { align-items: center; justify-content: center; }
+        #scr-home { align-items: center; justify-content: center; position: relative; }
         .logo { font-size: 4rem; font-weight: 900; color: var(--c-blue); margin-bottom: 5px; }
         .play-btn { width: 100px; height: 100px; background: var(--c-blue); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 20px rgba(0,51,102,0.2); cursor: pointer; margin-bottom: 20px; }
         .stats-row { display: flex; gap: 10px; margin-top: 10px; }
         
+        /* NEW HOME TOP BAR */
+        .home-top-bar {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            z-index: 100;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .icon-btn-square {
+            width: 44px;
+            height: 44px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-size: 24px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            border: 1px solid rgba(0,0,0,0.05);
+            position: relative;
+        }
+        
+        .icon-btn-square:active { transform: scale(0.95); }
+        
+        .icon-btn-square .badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 12px;
+            height: 12px;
+            background: var(--c-red);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: none;
+        }
+
         .nav-bar { position: absolute; bottom: 0; width: 100%; height: 75px; background: white; display: flex; justify-content: space-around; align-items: center; z-index: 1000; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); }
         .nav-icon { opacity: 0.3; color: var(--c-blue); cursor: pointer; }
         .nav-icon.active { opacity: 1; }
@@ -136,7 +176,7 @@
         .l-btn.active { background: var(--c-blue); color: white; }
 
         .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 2000; backdrop-filter: blur(2px); }
-        .modal-body { background: white; width: 85%; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); }
+        .modal-body { background: white; width: 85%; padding: 25px; border-radius: 20px; text-align: center; box-shadow: 0 20px 40px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
         .timer-row { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; color: var(--c-blue); font-weight: 600; font-variant-numeric: tabular-nums; }
         
         /* VICTORY SCREEN & CONFETTI */
@@ -516,7 +556,7 @@
         
         .daily-reward-grid {
             display: grid;
-            grid-template-columns: repeat(7, 1fr);
+            grid-template-columns: repeat(4, 1fr); /* FIXED: Changed from 7 to 4 to prevent overflow */
             gap: 8px;
             margin: 15px 0;
         }
@@ -774,6 +814,14 @@
     </div>
 
     <div id="scr-home" class="screen active">
+        <!-- New Top Bar with Square Daily Reward Button -->
+        <div class="home-top-bar">
+            <div class="icon-btn-square" id="daily-reward-btn" onclick="App.showDailyReward()" style="display:none;">
+                🎁
+                <div class="badge" id="daily-badge"></div>
+            </div>
+        </div>
+
         <div class="logo">Arrows</div>
         <div id="lvl-label" style="margin-bottom: 10px; font-weight: bold; color: var(--c-blue); opacity: 0.6;">LEVEL 1</div>
         
@@ -796,11 +844,6 @@
             <button onclick="App.nav('stats')" style="padding:10px 20px; background:var(--c-blue); color:white; border:none; border-radius:10px; font-weight:bold;">Stats</button>
             <button onclick="App.nav('shop')" style="padding:10px 20px; background:var(--c-gold); color:white; border:none; border-radius:10px; font-weight:bold;">Shop</button>
         </div>
-        
-        <!-- КНОПКА ЕЖЕДНЕВНОЙ НАГРАДЫ -->
-        <button id="daily-reward-btn" onclick="App.showDailyReward()" style="margin-top:15px; padding:12px 25px; background:linear-gradient(135deg, #667eea 0%, #764ba2 100%); color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; display:none;">
-            🎁 Ежедневная награда
-        </button>
         
         <button id="fix-level-btn" onclick="App.fixProblemLevels()" style="margin-top:15px; padding:8px 15px; background:#ff6b6b; color:white; border:none; border-radius:8px; font-weight:bold; cursor:pointer; display:none;">
             🔧 Исправить уровни
@@ -2040,9 +2083,9 @@ const App = {
                     
                     this.loadReferralInfo();
                     
-                    // Показываем кнопку ежедневных наград
+                    // Показываем кнопку ежедневных наград (теперь это иконка)
                     const dailyBtn = document.getElementById('daily-reward-btn');
-                    if (dailyBtn) dailyBtn.style.display = 'block';
+                    if (dailyBtn) dailyBtn.style.display = 'flex';
                     
                     // Проверяем доступность награды
                     this.checkDailyReward();
@@ -2245,7 +2288,7 @@ const App = {
         
         // Показываем кнопку ежедневных наград
         const dailyBtn = document.getElementById('daily-reward-btn');
-        if (dailyBtn) dailyBtn.style.display = 'block';
+        if (dailyBtn) dailyBtn.style.display = 'flex';
         
         alert('Connected to Telegram (demo mode)!');
         this.loadReferralInfo();
@@ -2337,12 +2380,8 @@ const App = {
             const discoveredCount = this.state.easterEggs.discovered.length;
             if (statsEasterEggs) statsEasterEggs.innerText = `${discoveredCount}/10`;
             
-            // Обновляем кнопку ежедневных наград
-            const dailyBtn = document.getElementById('daily-reward-btn');
-            if (dailyBtn) {
-                const streak = this.state.dailyRewards.streak || 0;
-                dailyBtn.innerText = `🎁 ${t.dailyRewards} (${streak} ${t.day1.substring(0, 4)})`;
-            }
+            // Обновляем бейдж на кнопке ежедневных наград (теперь это точка)
+            // Логика перенесена в checkDailyReward
             
             if (this.state.referralInfo) {
                 this.updateReferralUI();
@@ -3918,14 +3957,19 @@ const App = {
             if (response.ok) {
                 const data = await response.json();
                 if (data.success && data.available) {
-                    // Показываем кнопку с уведомлением
-                    const dailyBtn = document.getElementById('daily-reward-btn');
-                    if (dailyBtn) {
-                        dailyBtn.style.display = 'block';
-                        dailyBtn.style.animation = 'rewardPulse 2s ease-in-out infinite';
-                        
-                        // Показываем всплывающее уведомление
-                        this.showNotification(GAME_TEXTS[this.state.lang].rewardAvailable, 'success');
+                    this.state.dailyRewards.available = true;
+                    // Показываем бейдж на иконке (точка)
+                    const badge = document.getElementById('daily-badge');
+                    if (badge) {
+                        badge.style.display = 'block';
+                    }
+                    // Показываем всплывающее уведомление
+                    this.showNotification(GAME_TEXTS[this.state.lang].rewardAvailable, 'success');
+                } else {
+                    this.state.dailyRewards.available = false;
+                    const badge = document.getElementById('daily-badge');
+                    if (badge) {
+                        badge.style.display = 'none';
                     }
                 }
             }
@@ -4149,9 +4193,11 @@ const App = {
             if (daily.available) {
                 claimBtn.disabled = false;
                 claimBtn.innerText = t.claimReward;
+                claimBtn.classList.remove('reward-claiming');
             } else {
                 claimBtn.disabled = true;
                 claimBtn.innerText = t.claiming;
+                claimBtn.classList.add('reward-claiming');
             }
         }
         
@@ -4164,7 +4210,7 @@ const App = {
         if (modal) modal.style.display = 'none';
     },
 
-    // Получение ежедневной награды
+    // Получение ежедневной награды (ИСПРАВЛЕНА ЛОГИКА ЗАВИСАНИЯ)
     async claimDailyReward() {
         if (!this.state.tgUserId) {
             this.showNotification(GAME_TEXTS[this.state.lang].notConnected, 'error');
@@ -4173,7 +4219,7 @@ const App = {
         
         const t = GAME_TEXTS[this.state.lang];
         const claimBtn = document.getElementById('daily-claim-btn');
-        const originalText = claimBtn ? claimBtn.innerText : '';
+        const originalText = claimBtn ? claimBtn.innerText : 'Claim';
         
         try {
             if (claimBtn) {
@@ -4220,6 +4266,10 @@ const App = {
             this.updateUI();
             this.updateDailyRewardUI();
             
+            // Скрываем бейдж на иконке
+            const badge = document.getElementById('daily-badge');
+            if (badge) badge.style.display = 'none';
+
             // Показываем анимацию получения монет
             this.showCoinsAnimation(data.coins_earned || 0);
             
@@ -4243,11 +4293,20 @@ const App = {
             
             this.showNotification(errorMessage, 'error');
             
-            // Восстанавливаем кнопку
+        } finally {
+            // ВАЖНО: Восстанавливаем кнопку всегда, чтобы не зависала
             if (claimBtn) {
-                claimBtn.disabled = false;
-                claimBtn.innerText = originalText;
-                claimBtn.classList.remove('reward-claiming');
+                // Если награда получена или ошибка (уже получена), кнопка должна быть неактивна
+                if (!this.state.dailyRewards.available) {
+                    claimBtn.disabled = true;
+                    claimBtn.innerText = t.claiming; // Или "Получено", но claiming используется как статус недоступности в коде
+                    claimBtn.classList.add('reward-claiming');
+                } else {
+                    // Если вдруг ошибка сети и награда все еще доступна, разблокируем
+                    claimBtn.disabled = false;
+                    claimBtn.innerText = originalText;
+                    claimBtn.classList.remove('reward-claiming');
+                }
             }
         }
     },
